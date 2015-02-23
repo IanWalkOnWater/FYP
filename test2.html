@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+        <link rel="shortcut icon" href="http://learn.lboro.ac.uk/theme/image.php/lboro2/theme/1416506521/favicon" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>test1</title>
+
+		
+		
+	</head>
+	<body>
+
+
+    <canvas width="10000" height="1000" id="myCanvas"></canvas>
+
+	</body>
+
+    <script type="text/javascript">
+
+    var objectArray = [];
+      
+
+    function drawBarChart ( dataArray, 
+                            dataLabelArray, 
+                            barWidth, 
+                            canvasHeight,
+                            canvas) 
+    {     
+      var dataValue = 0;
+      var xposition = 0;
+      var spaceBetweenBars = 70;
+      //var objectArray = [];
+      var moduleCode = "";
+      
+      canvas.height = canvasHeight;
+      var context = canvas.getContext('2d');
+
+      for( var i =0; i< dataArray.length; i++)
+      {
+        dataValue = dataArray[i];
+        context.beginPath();
+        xposition = xposition + (spaceBetweenBars);
+        //console.log(xposition);
+        yposition = (canvasHeight - Number(dataArray[i]) - 20) ;
+        //console.log( yposition + " y");
+        context.rect(xposition, yposition, barWidth, dataValue); // X-pos, Y-Pos ( from top), width, height
+        context.fillStyle = 'yellow';
+        context.fill();
+        context.lineWidth = 1;
+        context.strokeStyle = 'black';
+        //context.stroke();
+
+        topLeft = [ xposition, yposition ];
+        topRight = [ xposition + barWidth, yposition  ];
+        bottomLeft = [xposition , yposition + dataValue];
+        bottomRight = [xposition + barWidth, yposition + dataValue];
+
+        if( dataArray.length == dataLabelArray.length)
+          {  
+            moduleCode : dataLabelArray[i]
+          }else{
+            moduleCode: "unknown";
+          }  
+        objectArray.push({  
+          topLeft : [ xposition, yposition ],
+          topRight : [ xposition + barWidth , yposition  ],
+          bottomLeft : [xposition , yposition + dataValue],
+          bottomRight : [xposition + barWidth, yposition + dataValue],
+          moduleCode: moduleCode
+          
+        });
+
+        console.log(topLeft);
+        console.log(topRight);
+        /*console.log(bottomLeft);
+        console.log(bottomRight);*/
+
+        context.beginPath();
+        context.moveTo(objectArray[i].topLeft[0], objectArray[i].topLeft[1]);
+        context.lineTo( objectArray[i].bottomLeft[0], objectArray[i].bottomRight[1]);
+        context.stroke();
+
+        context.fillStyle = "black";
+        context.font = 'italic 10pt Calibri';
+        context.fillText( dataValue, xposition, yposition - 20);
+        //console.log(dataLabelArray.length + "," + dataArray.);
+        if( dataArray.length == dataLabelArray.length)
+        {
+          context.font = 'italic 15pt Calibri';
+          context.fillText( dataLabelArray[i], xposition, yposition + dataValue + 20);
+
+        }  
+      
+      }; // End of For
+
+      var counter = canvasHeight;
+      for( counter ; counter >=0; counter = counter - (canvasHeight/10) )
+      { 
+
+        var t = canvasHeight - counter;
+        //console.log( "t is " + t);
+          context.fillText( counter, 10, canvasHeight - counter);
+
+
+      }  
+
+     
+     }// End of function
+
+     function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }  
+
+      var dataArray = [65, 66, 80, 41, 75];
+      var dataLabelArray = ["A", "B", "C", "D", "E"];
+      var barWidth = 50;
+      var canvasHeight = 200;
+      var canvas = document.getElementById('myCanvas');
+     drawBarChart( dataArray, 
+                            dataLabelArray, 
+                            barWidth, 
+                            canvasHeight,
+                            canvas); 
+
+     // http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
+     canvas.addEventListener('mousemove', function(evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+
+        for( var counter = 0; counter < objectArray.length; counter++ )
+        {
+        check( [mousePos.x, mousePos.y ], objectArray[counter]);
+        //console.log(message);
+        }
+      }, false);
+
+     function check( inputArray, objectToCompare)
+     {
+        
+        var topLeft = objectToCompare.topLeft;
+        var topRight = objectToCompare.topRight;
+
+        var bottomLeft = objectToCompare.bottomLeft;
+        var bottomRight = objectToCompare.bottomRight;
+        if( checkX( inputArray[0], topLeft[0], topRight[0]) == true
+          && checkY( inputArray[1], topLeft[1], bottomLeft[1] ) == true )
+        {
+          console.log( " check passed");
+        }  
+
+        //if( checkY( inputArray[1], topLeft[1], bottomLeft[1] ))
+          //console.log( "ycheck passed");
+
+     }
+
+     function checkX( xCoordinate, leftCoordinate, rightCoordinate)
+     {
+        if(xCoordinate >= leftCoordinate && xCoordinate <= rightCoordinate )
+          return true;
+        else return false;
+
+     }
+      
+
+     function checkY( yCoordinate, topCoordinate, bottomCoordinate)
+     {
+        if(yCoordinate >= topCoordinate && yCoordinate <= bottomCoordinate )
+          return true;
+        else return false;
+
+     }
+      
+
+    </script>
+</html>
