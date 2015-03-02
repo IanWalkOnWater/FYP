@@ -2,12 +2,16 @@
 * Shared CSS for all pages
 ***************************************************************************/
 .page-header{
-	background-color: blue;
+	background-color: #586A95;
+	width: 100%;
+}
+.page-header img{
+	margin-left: 1%;
 }
 .page-header li{
 	
 	display: inline;
-	width: 100%;
+	
 }
 
 

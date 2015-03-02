@@ -133,6 +133,17 @@
 
         for( var counter = 0; counter < objectArray.length; counter++ )
         {
+        //check( [mousePos.x, mousePos.y ], objectArray[counter]);
+        //console.log(message);
+        }
+      }, false);
+
+      canvas.addEventListener('click', function(evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+
+        for( var counter = 0; counter < objectArray.length; counter++ )
+        {
         check( [mousePos.x, mousePos.y ], objectArray[counter]);
         //console.log(message);
         }
