@@ -68,6 +68,7 @@ $sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Mo
 	    //echo "Database created successfully<br>";
 	    $jsonToEncode = array();
 	    $tempvar = array();
+
 	    foreach ($conn->query($sql) as $row) 
 		{
 			// print $row['Module_Code'] . "\t";
@@ -81,12 +82,14 @@ $sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Mo
         "module_title" => $row['Module_Title'],
 				"student_id" => $row['Student_ID'],
         "staff_id" => $row['Staff_ID'],
-
+        "semester1" => $row['Semester1'],
+        "semester2" => $row['Semester2'],
+        
 			);
-
+      $name = $row['Name'];
 			 $jsonToEncode[] = $tempvar;
 		}
-	
+	 print "Welcome " . $name . "! (logout)<br/>";
 		//$someJson = json_encode($tempvar);
 		$someJson = json_encode($jsonToEncode);
     }
@@ -130,6 +133,8 @@ for(var i=0; i<abc.length; i++)
           moduleCode: abc[i].module_code,
           moduleTitle: abc[i].module_title,
           staffID: abc[i].staff_id,
+          semester1: abc[i].semester1,
+          semester2: abc[i].semester2,
         });
 
 }
@@ -147,6 +152,8 @@ for(var i=0; i<abc.length; i++)
       var xposition = 0;
       var spaceBetweenBars = 70;
       var moduleCode = "";
+      var heightMultiplyer = 1.5;
+      var spaceFromBottom = 20; // moves all the bars up by x pixels
 
       
       canvas.height = canvasHeight;
@@ -158,20 +165,9 @@ for(var i=0; i<abc.length; i++)
         context.beginPath();
         xposition = xposition + (spaceBetweenBars);
         
-        yposition = (canvasHeight - Number(dataArray[i]) - 20) ;
+        yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
         
-        context.rect(xposition, yposition, barWidth, dataValue); // X-pos, Y-Pos ( from top), width, height
-        context.fillStyle = 'yellow';
-
-        if( dataValue > 70) context.fillStyle = "green";
-        context.fill();
-        context.lineWidth = 2;
-        context.strokeStyle = 'black';
-        context.stroke();
-
-        context.fillStyle = "black";
-        context.font = 'italic 10pt Calibri';
-        context.fillText( dataValue, xposition, yposition - 20);
+        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
 
         topLeft = [ xposition, yposition ];
         topRight = [ xposition + barWidth, yposition  ];
@@ -184,7 +180,7 @@ for(var i=0; i<abc.length; i++)
             
           //var tVariable = parseInt(yposition) + parseInt(dataValue) + 20;
           //var tVariable =  parseInt(dataArray[i]) + yposition + 20 ;
-          var tVariable =  parseInt(dataValue) + yposition + 20 ;
+          var tVariable =  parseInt(dataValue) + yposition + spaceFromBottom ;
           context.fillText( dataLabelArray[i], xposition, tVariable);//190);//yposition + dataValue + 20);
           moduleCode = dataLabelArray[i];
         }
@@ -203,15 +199,27 @@ for(var i=0; i<abc.length; i++)
       }; // End of For
      } // End of function drawBarChart  
 
-     // Find the position of the mouse in the canvas
-     // param: canvas object, event
-     function getMousePos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-          x: evt.clientX - rect.left,
-          y: evt.clientY - rect.top
-        };
-      }  
+     function drawOneBar( context,
+                        xposition,
+                        yposition,
+                        barWidth,
+                        dataValue,
+                        spaceFromBottom)
+     {
+
+      context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
+        context.fillStyle = 'yellow';
+
+        if( dataValue > 70) context.fillStyle = "green";
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = 'black';
+        context.stroke();
+
+        context.fillStyle = "black";
+        context.font = 'italic 10pt Calibri';
+        context.fillText( dataValue, xposition, yposition - spaceFromBottom);
+     }
 
      //var dataArray = [65, 66, 80, 41, 75];
       //var dataLabelArray = ["A", "B", "C", "D", "E"];
@@ -274,6 +282,12 @@ for(var i=0; i<abc.length; i++)
 
     } // End of function getModuleInfo
 
+    function drawPartBarChart ( )
+    {
+
+
+
+    }
 </script>
 
 
