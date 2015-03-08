@@ -36,10 +36,26 @@
 
      // Find the position of the mouse in the canvas
      // param: canvas object, event
-     function getMousePos(canvas, evt) {
+     function getMousePos(canvas, evt)
+     {
         var rect = canvas.getBoundingClientRect();
         return {
           x: evt.clientX - rect.left,
           y: evt.clientY - rect.top
         };
       }  
+
+      function resetCanvas( canvas)
+      {
+        context = canvas.getContext('2d');
+
+        try
+        {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        catch(error)    
+        {
+          console.log( "failed to clear canvas. " + error );
+        }
+      }

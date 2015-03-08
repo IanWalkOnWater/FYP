@@ -59,10 +59,20 @@ try {
 
 	    // Build the SQL
 	    //$sql = "SELECT * FROM coidckw.Student_Module";
-$sql = "SELECT Student_Module.*, Student.*, Module.* FROM Student_Module JOIN Student ON ";
-$sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code";
+$sql = "SELECT Student_Module.*, Student.*, Module.*, Lecturer.* FROM Student_Module JOIN Student ON ";
+$sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code ";
+$sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
 
-	   
+// UPDATE Module
+// SET Staff_ID = 
+// WHERE Module_Code='';
+// SELECT * FROM Module
+
+// SELECT * FROM Module Join  Lecturer ON Module.Staff_ID = Lecturer.Staff_ID
+
+//SELECT Student_Module.*, Student.*, Module.* FROM Student_Module JOIN Student ON Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code 
+
+	   echo $sql;
 	    // use exec() because no results are returned
 	    //$conn->exec($sql);
 	    //echo "Database created successfully<br>";
@@ -84,9 +94,10 @@ $sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Mo
         "staff_id" => $row['Staff_ID'],
         "semester1" => $row['Semester1'],
         "semester2" => $row['Semester2'],
+        "year" => $row['Year'],
         
 			);
-      $name = $row['Name'];
+      $name = $row['Student_Name'];
 			 $jsonToEncode[] = $tempvar;
 		}
 	 print "Welcome " . $name . "! (logout)<br/>";
@@ -102,7 +113,7 @@ catch(PDOException $e)
 
 
 <div style="background-color:#586A95; color:white; border:1px solid #DDD;padding-left: 1%;border-radius: 5px;">All Modules </div>
-<div id= "moduleInfoDiv">
+
 
 </div>
 
@@ -110,7 +121,7 @@ catch(PDOException $e)
 <br/>
 <br/>
 <canvas width= "10000" height= "1000" id= "myCanvas"></canvas>
-
+<div id= "moduleInfoDiv">
 
 
 
@@ -135,6 +146,8 @@ for(var i=0; i<abc.length; i++)
           staffID: abc[i].staff_id,
           semester1: abc[i].semester1,
           semester2: abc[i].semester2,
+          moduleMark: abc[i].module_mark,
+          year: abc[i].year,
         });
 
 }
@@ -193,7 +206,7 @@ for(var i=0; i<abc.length; i++)
           topRight : [ xposition + barWidth , yposition  ],
           bottomLeft : [xposition , yposition + dataValue],
           bottomRight : [xposition + barWidth, yposition + dataValue],
-          moduleCode: moduleCode
+          moduleCode: moduleCode,
         });
       
       }; // End of For
@@ -208,43 +221,18 @@ for(var i=0; i<abc.length; i++)
      {
 
       context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
-        context.fillStyle = 'yellow';
+        context.fillStyle = '#ffca28';
 
-        if( dataValue > 70) context.fillStyle = "green";
+        if( dataValue > 70) context.fillStyle = "#388e3c";
         context.fill();
-        context.lineWidth = 2;
-        context.strokeStyle = 'black';
-        context.stroke();
+        // context.lineWidth = 2;
+        // context.strokeStyle = 'black';
+        // context.stroke();
 
         context.fillStyle = "black";
         context.font = 'italic 10pt Calibri';
         context.fillText( dataValue, xposition, yposition - spaceFromBottom);
-     }
-
-     //var dataArray = [65, 66, 80, 41, 75];
-      //var dataLabelArray = ["A", "B", "C", "D", "E"];
-      //moduleCodeArray = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-      var barWidth = 50;
-      var canvasHeight = 200;
-
-      var canvas = document.getElementById('myCanvas');
-      drawBarChart( moduleMarkArray, 
-                    moduleCodeArray, 
-                    barWidth, 
-                    canvasHeight,
-                    canvas); 
-      
-      // Add a onclick event listener to the canvas
-      canvas.addEventListener('click', function(evt) {
-        var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-
-        for( var counter = 0; counter < objectArray.length; counter++ )
-        {
-        check( [mousePos.x, mousePos.y ], objectArray[counter]);
-        //console.log(message);
-        }
-      }, false);
+     }// End of drawOneBar
 
       function check( inputArray, objectToCompare)
      {
@@ -282,12 +270,168 @@ for(var i=0; i<abc.length; i++)
 
     } // End of function getModuleInfo
 
-    function drawPartBarChart ( )
+    function drawPartBarChart ( moduleObjectArray,
+                                canvas)
     {
+      var partAArray = [];
+      var partBArray = [];
+      var canvasHeight = canvas.height;
+      var context = canvas.getContext('2d');
+      var barWidth = 50; 
+      var spaceFromBottom = 20;
+      var spaceBetweenBars = 70;
+      var xposition = 0;
+
+      resetCanvas( canvas);
+      console.log( moduleObjectArray);
+      for( var i = 0; i< moduleObjectArray.length; i++)
+      {  
+          var moduleCode = moduleObjectArray[i].moduleCode;
+          var partCode = moduleCode.substr(2,1);
+          switch( partCode)
+          {
+            case "A": partAArray.push(moduleObjectArray[i]);
+                      break;           
+            case "B": partBArray.push(moduleObjectArray[i]);
+                      break;          
+            default: console.log( "error in switch with: " + partCode);
+          }
 
 
+         
+          
+      }// End of for 
+        // drawBarChart ( dataArray, 
+        //                       dataLabelArray, 
+        //                       barWidth, 
+        //                       canvasHeight,
+        //                       canvas) 
+        console.log( partAArray);
 
-    }
+        for( var j =0; j< partAArray.length; j++)
+         {
+          dataValue = partAArray[j].moduleMark;
+          context.beginPath();
+           xposition = xposition + (spaceBetweenBars);
+          
+           yposition = (canvasHeight - Number(dataValue) );// - spaceFromBottom) ;
+          
+           drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+
+          // topLeft = [ xposition, yposition ];
+          // topRight = [ xposition + barWidth, yposition  ];
+          // bottomLeft = [xposition , yposition + dataValue];
+          // bottomRight = [xposition + barWidth, yposition + dataValue];
+        
+          // if( dataArray.length == dataLabelArray.length)
+          // {
+          //   context.font = 'italic 15pt Calibri';
+              
+          //   //var tVariable = parseInt(yposition) + parseInt(dataValue) + 20;
+          //   //var tVariable =  parseInt(dataArray[i]) + yposition + 20 ;
+          //   var tVariable =  parseInt(dataValue) + yposition + spaceFromBottom ;
+          //   context.fillText( dataLabelArray[i], xposition, tVariable);//190);//yposition + dataValue + 20);
+          // }
+         
+        
+        } // End of For  
+
+
+        //console.log(partBArray);    
+    }// End of function
+
+    function drawSummaryChart( moduleObjectArray, canvas)
+    {
+     
+      var temparray2011 = [];
+      var temparray2012 = [];   
+      var context = canvas.getContext('2d');
+
+      for( var i = 0; i< moduleObjectArray.length; i++)
+      {
+
+        var moduleYear = moduleObjectArray[i].year;
+        switch( moduleYear)
+          {
+            case "2011": temparray2011.push(moduleObjectArray[i]);
+                      break;           
+            case "2012": temparray2012.push(moduleObjectArray[i]);
+                      break;          
+            default: console.log( "error in switch with: " + moduleObjectArray[i]);
+          }
+
+
+      }  
+     var averageScore2011 = calculateAverage( temparray2011);
+     var averageScore2012 = calculateAverage( temparray2012);
+     var spaceFromBottom = 20;
+     var spaceBetweenBars = 70;
+     var barwidth = 50;
+
+
+      yposition = (canvasHeight - Number(averageScore2011) - spaceFromBottom);
+      xposition = 0;
+      dataValue = averageScore2011.toFixed(1);
+      
+      
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+
+      yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
+      xposition = xposition + spaceBetweenBars;
+      dataValue = averageScore2012;
+
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+
+    } // End of drawSummaryChart
+
+    function calculateAverage(inputArray)
+    {
+      var sum = 0;
+      var result = -1;
+
+      for( var counter = 0; counter < inputArray.length; counter++)
+      {
+        sum = sum + Number(inputArray[counter].moduleMark);
+      }// End of For  
+
+      console.log( sum);
+      if( sum > 0)
+      {
+        result = sum / inputArray.length;
+      }  
+
+      return result;
+    }// End of calculateAverage
+
+    //drawPartBarChart ( moduleObjectArray, canvas);
+    var canvas = document.getElementById('myCanvas');
+    //resetCanvas(canvas);
+    //canvas = document.getElementById('myCanvas');
+    drawSummaryChart( moduleObjectArray, canvas);
+
+
+      var barWidth = 50;
+      var canvasHeight = 200;
+
+      
+      drawBarChart( moduleMarkArray, 
+                    moduleCodeArray, 
+                    barWidth, 
+                    canvasHeight,
+                    canvas); 
+      
+      // Add a onclick event listener to the canvas
+      canvas.addEventListener('click', function(evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+
+        for( var counter = 0; counter < objectArray.length; counter++ )
+        {
+          check( [mousePos.x, mousePos.y ], objectArray[counter]);
+        //console.log(message);
+        }
+      }, false);
+    
 </script>
 
 
