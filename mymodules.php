@@ -175,7 +175,7 @@ for(var i=0; i<abc.length; i++)
       for( var i =0; i< dataArray.length; i++)
       {
         dataValue = dataArray[i];
-        //context.beginPath();
+
         xposition = xposition + (spaceBetweenBars);
         
         yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
@@ -191,10 +191,10 @@ for(var i=0; i<abc.length; i++)
         {
           context.font = 'italic 15pt Calibri';
             
-          //var tVariable = parseInt(yposition) + parseInt(dataValue) + 20;
-          //var tVariable =  parseInt(dataArray[i]) + yposition + 20 ;
-          var tVariable =  parseInt(dataValue) + yposition + spaceFromBottom ;
-          context.fillText( dataLabelArray[i], xposition, tVariable);//190);//yposition + dataValue + 20);
+          //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
+          //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
+          var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+          context.fillText( dataLabelArray[i], xposition, textPosition);//190);//yposition + dataValue + 20);
           moduleCode = dataLabelArray[i];
         }
         else{
@@ -210,6 +210,9 @@ for(var i=0; i<abc.length; i++)
         });
       
       }; // End of For
+
+      return objectArray;
+
      } // End of function drawBarChart  
 
      function drawOneBar( context,
@@ -245,28 +248,9 @@ for(var i=0; i<abc.length; i++)
           context.closePath();
      }// End of drawOneBar
 
-      function check( inputArray, objectToCompare)
-     {
-        
-        var topLeft = objectToCompare.topLeft;
-        var topRight = objectToCompare.topRight;
+      
 
-        var bottomLeft = objectToCompare.bottomLeft;
-        var bottomRight = objectToCompare.bottomRight;
-        if( checkX( inputArray[0], topLeft[0], topRight[0]) == true
-          && checkY( inputArray[1], topLeft[1], bottomLeft[1] ) == true )
-        {
-          //console.log( objectToCompare.moduleCode);
-          
-          var moduleInfo = getModuleInfo( objectToCompare.moduleCode );
-
-          document.getElementById("moduleInfoDiv").innerHTML = "<p>" + moduleInfo.moduleCode + "</p>";
-          document.getElementById("moduleInfoDiv").innerHTML += "<p>" + moduleInfo.moduleTitle + "</p>";
-          document.getElementById("moduleInfoDiv").innerHTML += "<p> Lecturer:" + moduleInfo.staffID + "</p>";
-        }  
-
-     }
-
+     
     function getModuleInfo ( moduleCodeInput)
     {
       for( var i = 0; i< moduleObjectArray.length; i++)
@@ -278,7 +262,6 @@ for(var i=0; i<abc.length; i++)
           return( moduleObjectArray[i] )
         }  
       }        
-
     } // End of function getModuleInfo
 
     function drawPartBarChart ( moduleObjectArray,
@@ -339,10 +322,10 @@ for(var i=0; i<abc.length; i++)
           // {
           //   context.font = 'italic 15pt Calibri';
               
-          //   //var tVariable = parseInt(yposition) + parseInt(dataValue) + 20;
-          //   //var tVariable =  parseInt(dataArray[i]) + yposition + 20 ;
-          //   var tVariable =  parseInt(dataValue) + yposition + spaceFromBottom ;
-          //   context.fillText( dataLabelArray[i], xposition, tVariable);//190);//yposition + dataValue + 20);
+          //   //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
+          //   //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
+          //   var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+          //   context.fillText( dataLabelArray[i], xposition, textPosition);//190);//yposition + dataValue + 20);
           // }
          
         
@@ -350,28 +333,8 @@ for(var i=0; i<abc.length; i++)
 
 
         //console.log(partBArray);    
-    }// End of function
+    }// End of drawPartBarChart
 
-    function checkPart( inputArray, objectToCompare)
-     {
-        
-        var result = false;
-        var topLeft = objectToCompare.topLeft;
-        var topRight = objectToCompare.topRight;
-
-        var bottomLeft = objectToCompare.bottomLeft;
-        var bottomRight = objectToCompare.bottomRight;
-        if( checkX( inputArray[0], topLeft[0], topRight[0]) == true
-          && checkY( inputArray[1], topLeft[1], bottomLeft[1] ) == true )
-        {
-          //console.log( objectToCompare.moduleCode);
-          result = true;
-         
-        }
-
-        return( result);  
-
-     }
 
     function drawSummaryChart( moduleObjectArray, canvas)
     {
@@ -415,12 +378,16 @@ for(var i=0; i<abc.length; i++)
       }
       
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+      var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+      context.fillText( "Part A", xposition, textPosition);
 
       yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
       xposition = xposition + spaceBetweenBars;
       dataValue = averageScore2012;
       
-      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);// Draw part B bar
+      textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+      context.fillText( "Part B", xposition, textPosition);
 
       var temparray2012 = {
         topLeft : [ xposition, yposition ],
@@ -431,19 +398,16 @@ for(var i=0; i<abc.length; i++)
       }
 
       var newarray = [ temparray2011, temparray2012];
-      console.log( temparray2011);
-console.log( newarray);
+      
       // Add a onclick event listener to the canvas
       canvas.addEventListener('click', function(evt) {
         var mousePos = getMousePos(canvas, evt);
         var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-        console.log(message);
+        
         for( var counter = 0; counter < newarray.length; counter++ )
         {
-          if( checkPart( [mousePos.x, mousePos.y ], newarray[counter]) == true )
+          if( checkBarIsClicked( [mousePos.x, mousePos.y ], newarray[counter]) == true )
            {
-
-            
 
             var arrayOfScores = [];
             var arrayofModuleCodes = [];
@@ -460,7 +424,7 @@ console.log( newarray);
             barWidth = 50;
             canvasHeight = 200;
             
-            drawBarChart( moduleMarkArray, 
+            var testvara = drawBarChart( moduleMarkArray, 
                     moduleCodeArray, 
                     barWidth, 
                     canvasHeight,
@@ -513,12 +477,16 @@ console.log( newarray);
 
       //   for( var counter = 0; counter < objectArray.length; counter++ )
       //   {
-      //     check( [mousePos.x, mousePos.y ], objectArray[counter]);
-      //   //console.log(message);
+      //     if( checkBarIsClicked( [mousePos.x, mousePos.y ], objectArray[counter]) == true)
+      //     {
+      //       console.log(message);
+
+      //     }            
       //   }
-      // }
-      // // // Add a onclick event listener to the canvas
-      // canvas.addEventListener('click', clickHandler, false);
+      // }// End of clickHandler
+
+      // Add a onclick event listener to the canvas
+      //canvas.addEventListener('click', clickHandler, false);
 
       
 
@@ -527,6 +495,12 @@ console.log( newarray);
      drawSummaryChart( moduleObjectArray, canvas);
 
      //canvas.removeEventListener('click', clickHandler);
+
+     // var moduleInfo = getModuleInfo( objectToCompare.moduleCode );
+
+     //      document.getElementById("moduleInfoDiv").innerHTML = "<p>" + moduleInfo.moduleCode + "</p>";
+     //      document.getElementById("moduleInfoDiv").innerHTML += "<p>" + moduleInfo.moduleTitle + "</p>";
+     //      document.getElementById("moduleInfoDiv").innerHTML += "<p> Lecturer:" + moduleInfo.staffID + "</p>";
     
 
 </script>
