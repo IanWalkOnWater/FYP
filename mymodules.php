@@ -219,19 +219,26 @@ for(var i=0; i<abc.length; i++)
                         dataValue,
                         spaceFromBottom)
      {
+        try{
+            context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
+            context.fillStyle = '#ffca28';
 
-      context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
-        context.fillStyle = '#ffca28';
+            if( dataValue > 70) context.fillStyle = "#388e3c";
+            context.fill();
+            // Fill in the Border
+            // context.lineWidth = 2;
+            // context.strokeStyle = 'black';
+            // context.stroke();
+            
+            context.fillStyle = "black";
+            context.font = 'italic 10pt Calibri';
+            context.fillText( dataValue, xposition, yposition - spaceFromBottom);
+          }
 
-        if( dataValue > 70) context.fillStyle = "#388e3c";
-        context.fill();
-        // context.lineWidth = 2;
-        // context.strokeStyle = 'black';
-        // context.stroke();
-
-        context.fillStyle = "black";
-        context.font = 'italic 10pt Calibri';
-        context.fillText( dataValue, xposition, yposition - spaceFromBottom);
+          catch( error)
+          {
+            console.log( "Failed to draw one bar " + error);
+          }
      }// End of drawOneBar
 
       function check( inputArray, objectToCompare)
@@ -283,6 +290,7 @@ for(var i=0; i<abc.length; i++)
       var xposition = 0;
 
       resetCanvas( canvas);
+      console.log( "moduleObjectArray from drawPartBarChart is:");
       console.log( moduleObjectArray);
       for( var i = 0; i< moduleObjectArray.length; i++)
       {  
@@ -306,7 +314,7 @@ for(var i=0; i<abc.length; i++)
         //                       barWidth, 
         //                       canvasHeight,
         //                       canvas) 
-        console.log( partAArray);
+       
 
         for( var j =0; j< partAArray.length; j++)
          {
@@ -340,11 +348,32 @@ for(var i=0; i<abc.length; i++)
         //console.log(partBArray);    
     }// End of function
 
+    function checkPart( inputArray, objectToCompare)
+     {
+        
+        var result = false;
+        var topLeft = objectToCompare.topLeft;
+        var topRight = objectToCompare.topRight;
+
+        var bottomLeft = objectToCompare.bottomLeft;
+        var bottomRight = objectToCompare.bottomRight;
+        if( checkX( inputArray[0], topLeft[0], topRight[0]) == true
+          && checkY( inputArray[1], topLeft[1], bottomLeft[1] ) == true )
+        {
+          //console.log( objectToCompare.moduleCode);
+          result = true;
+         
+        }
+
+        return( result);  
+
+     }
+
     function drawSummaryChart( moduleObjectArray, canvas)
     {
      
-      var temparray2011 = [];
-      var temparray2012 = [];   
+      var tempscorearray2011 = [];
+      var tempscorearray2012 = [];   
       var context = canvas.getContext('2d');
 
       for( var i = 0; i< moduleObjectArray.length; i++)
@@ -353,17 +382,17 @@ for(var i=0; i<abc.length; i++)
         var moduleYear = moduleObjectArray[i].year;
         switch( moduleYear)
           {
-            case "2011": temparray2011.push(moduleObjectArray[i]);
+            case "2011": tempscorearray2011.push(moduleObjectArray[i]);
                       break;           
-            case "2012": temparray2012.push(moduleObjectArray[i]);
+            case "2012": tempscorearray2012.push(moduleObjectArray[i]);
                       break;          
             default: console.log( "error in switch with: " + moduleObjectArray[i]);
           }
 
 
       }  
-     var averageScore2011 = calculateAverage( temparray2011);
-     var averageScore2012 = calculateAverage( temparray2012);
+     var averageScore2011 = calculateAverage( tempscorearray2011);
+     var averageScore2012 = calculateAverage( tempscorearray2012);
      var spaceFromBottom = 20;
      var spaceBetweenBars = 70;
      var barwidth = 50;
@@ -373,14 +402,70 @@ for(var i=0; i<abc.length; i++)
       xposition = 0;
       dataValue = averageScore2011.toFixed(1);
       
+      var temparray2011 = {
+        topLeft : [ xposition, yposition ],
+          topRight : [ xposition + barWidth , yposition  ],
+          bottomLeft : [xposition , yposition + dataValue],
+          bottomRight : [xposition + barWidth, yposition + dataValue],
+          year: 2011,
+      }
       
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
 
       yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
       xposition = xposition + spaceBetweenBars;
       dataValue = averageScore2012;
-
+      
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+
+      var temparray2012 = {
+        topLeft : [ xposition, yposition ],
+          topRight : [ xposition + barWidth , yposition  ],
+          bottomLeft : [xposition , yposition + dataValue],
+          bottomRight : [xposition + barWidth, yposition + dataValue],
+          year: 2012,
+      }
+
+      var newarray = [ temparray2011, temparray2012];
+      console.log( temparray2011);
+console.log( newarray);
+      // Add a onclick event listener to the canvas
+      canvas.addEventListener('click', function(evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+
+        for( var counter = 0; counter < newarray.length; counter++ )
+        {
+          if( checkPart( [mousePos.x, mousePos.y ], newarray[counter]) == true )
+           {
+
+            console.log(message);
+
+            var arrayOfScores = [];
+            var arrayofModuleCodes = [];
+            // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
+            for( var a = 0; a < tempscorearray2012.length; a++)
+            {
+              arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
+
+              arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
+
+            }  
+            moduleMarkArray = arrayOfScores;
+            moduleCodeArray = arrayofModuleCodes;
+            barWidth = 50;
+            canvasHeight = 200;
+            console.log( canvasHeight);
+            console.log( moduleMarkArray);
+            drawBarChart( moduleMarkArray, 
+                    moduleCodeArray, 
+                    barWidth, 
+                    canvasHeight,
+                    canvas); 
+           } 
+        
+        }
+      }, false);
 
     } // End of drawSummaryChart
 
@@ -394,7 +479,7 @@ for(var i=0; i<abc.length; i++)
         sum = sum + Number(inputArray[counter].moduleMark);
       }// End of For  
 
-      console.log( sum);
+      
       if( sum > 0)
       {
         result = sum / inputArray.length;
@@ -407,31 +492,36 @@ for(var i=0; i<abc.length; i++)
     var canvas = document.getElementById('myCanvas');
     //resetCanvas(canvas);
     //canvas = document.getElementById('myCanvas');
-    drawSummaryChart( moduleObjectArray, canvas);
+    
 
 
       var barWidth = 50;
       var canvasHeight = 200;
 
       
-      drawBarChart( moduleMarkArray, 
-                    moduleCodeArray, 
-                    barWidth, 
-                    canvasHeight,
-                    canvas); 
+      // drawBarChart( moduleMarkArray, 
+      //               moduleCodeArray, 
+      //               barWidth, 
+      //               canvasHeight,
+      //               canvas); 
       
-      // Add a onclick event listener to the canvas
-      canvas.addEventListener('click', function(evt) {
-        var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+      // // Add a onclick event listener to the canvas
+      // canvas.addEventListener('click', function(evt) {
+      //   var mousePos = getMousePos(canvas, evt);
+      //   var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
 
-        for( var counter = 0; counter < objectArray.length; counter++ )
-        {
-          check( [mousePos.x, mousePos.y ], objectArray[counter]);
-        //console.log(message);
-        }
-      }, false);
+      //   for( var counter = 0; counter < objectArray.length; counter++ )
+      //   {
+      //     check( [mousePos.x, mousePos.y ], objectArray[counter]);
+      //   //console.log(message);
+      //   }
+      // }, false);
+
+      //resetCanvas(canvas);
+
+     drawSummaryChart( moduleObjectArray, canvas);
     
+
 </script>
 
 
