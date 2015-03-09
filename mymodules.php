@@ -175,7 +175,7 @@ for(var i=0; i<abc.length; i++)
       for( var i =0; i< dataArray.length; i++)
       {
         dataValue = dataArray[i];
-        context.beginPath();
+        //context.beginPath();
         xposition = xposition + (spaceBetweenBars);
         
         yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
@@ -220,9 +220,11 @@ for(var i=0; i<abc.length; i++)
                         spaceFromBottom)
      {
         try{
+            context.beginPath();
             context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
             context.fillStyle = '#ffca28';
 
+            
             if( dataValue > 70) context.fillStyle = "#388e3c";
             context.fill();
             // Fill in the Border
@@ -239,6 +241,8 @@ for(var i=0; i<abc.length; i++)
           {
             console.log( "Failed to draw one bar " + error);
           }
+
+          context.closePath();
      }// End of drawOneBar
 
       function check( inputArray, objectToCompare)
@@ -319,7 +323,7 @@ for(var i=0; i<abc.length; i++)
         for( var j =0; j< partAArray.length; j++)
          {
           dataValue = partAArray[j].moduleMark;
-          context.beginPath();
+          
            xposition = xposition + (spaceBetweenBars);
           
            yposition = (canvasHeight - Number(dataValue) );// - spaceFromBottom) ;
@@ -400,7 +404,7 @@ for(var i=0; i<abc.length; i++)
 
       yposition = (canvasHeight - Number(averageScore2011) - spaceFromBottom);
       xposition = 0;
-      dataValue = averageScore2011.toFixed(1);
+      dataValue = Number( averageScore2011.toFixed(1) ); // Trim the number to 1d.p
       
       var temparray2011 = {
         topLeft : [ xposition, yposition ],
@@ -433,13 +437,13 @@ console.log( newarray);
       canvas.addEventListener('click', function(evt) {
         var mousePos = getMousePos(canvas, evt);
         var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-
+        console.log(message);
         for( var counter = 0; counter < newarray.length; counter++ )
         {
           if( checkPart( [mousePos.x, mousePos.y ], newarray[counter]) == true )
            {
 
-            console.log(message);
+            
 
             var arrayOfScores = [];
             var arrayofModuleCodes = [];
@@ -455,8 +459,7 @@ console.log( newarray);
             moduleCodeArray = arrayofModuleCodes;
             barWidth = 50;
             canvasHeight = 200;
-            console.log( canvasHeight);
-            console.log( moduleMarkArray);
+            
             drawBarChart( moduleMarkArray, 
                     moduleCodeArray, 
                     barWidth, 
@@ -504,10 +507,8 @@ console.log( newarray);
       //               barWidth, 
       //               canvasHeight,
       //               canvas); 
-      
-      // // Add a onclick event listener to the canvas
-      // canvas.addEventListener('click', function(evt) {
-      //   var mousePos = getMousePos(canvas, evt);
+      // function clickHandler(event) {
+      //   var mousePos = getMousePos(canvas, event);
       //   var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
 
       //   for( var counter = 0; counter < objectArray.length; counter++ )
@@ -515,11 +516,17 @@ console.log( newarray);
       //     check( [mousePos.x, mousePos.y ], objectArray[counter]);
       //   //console.log(message);
       //   }
-      // }, false);
+      // }
+      // // // Add a onclick event listener to the canvas
+      // canvas.addEventListener('click', clickHandler, false);
+
+      
 
       //resetCanvas(canvas);
 
      drawSummaryChart( moduleObjectArray, canvas);
+
+     //canvas.removeEventListener('click', clickHandler);
     
 
 </script>
