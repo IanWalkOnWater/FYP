@@ -17,6 +17,47 @@
 
  //     }
 
+      
+
+      // Draw one bar within a canvas
+      function drawOneBar( context,
+                        xposition,
+                        yposition,
+                        barWidth,
+                        dataValue,
+                        spaceFromBottom)
+     {
+        yposition = 300 - (dataValue*2) - (spaceFromBottom -5 );
+        // Check is spaceFromBottom is passed in
+        if( spaceFromBottom == undefined) spaceFromBottom = 20;
+        var labelPosition = xposition + (barWidth/3); // Get the labelPosition of the bar
+
+        try{
+            context.beginPath();
+            context.rect(xposition, yposition , barWidth, dataValue *2); // X-pos, Y-Pos ( from top), width, height
+            context.fillStyle = '#ffca28';
+
+            
+            if( dataValue > 70) context.fillStyle = "#388e3c";
+            context.fill();
+            // Fill in the Border
+            // context.lineWidth = 2;
+            // context.strokeStyle = 'black';
+            // context.stroke();
+            
+            context.fillStyle = "black";
+            context.font = 'italic 10pt Calibri';
+            context.fillText( dataValue, labelPosition, yposition - spaceFromBottom);
+          }
+
+          catch( error)
+          {
+            console.log( "Failed to draw one bar " + error);
+          }
+
+          context.closePath();
+     }// End of drawOneBar
+
      function checkX( xCoordinate, leftCoordinate, rightCoordinate)
      {
         if(xCoordinate >= leftCoordinate && xCoordinate <= rightCoordinate )

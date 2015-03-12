@@ -31,26 +31,6 @@ $password='ekd93pqk';
 //$servername = "localhost";
 $servername = $host;
 
-/*$conn=mysql_connect("co-project.lboro.ac.uk", $username, $password); 
-
-$dsn = "mysql://$username:$password@$host/$dbName"; 
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-    echo "Connected failed";
-}
-
-echo "connection success";
-
-$sql = "SELECT * from Student";
-
-if ($conn->query($sql) === TRUE) {
-    echo "Database created successfully";
-} else {
-    echo "Error creating database: " . $conn->error;
-}*/
-
 try {
 	    $conn = new PDO("mysql:host=$servername;dbname=coidckw", $username, $password);
 	    // set the PDO error mode to exception
@@ -72,7 +52,9 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
 
 //SELECT Student_Module.*, Student.*, Module.* FROM Student_Module JOIN Student ON Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code 
 
-	   echo $sql;
+// Join Assessment, Mark Critera and Module Table together 
+//SELECT Module.*, Assessment.*, Mark_Criteria.* FROM Module JOIN Assessment ON Module.Module_Code = Assessment.Module_Code JOIN Mark_Criteria ON Assessment.Assessment_ID = Mark_Criteria.Assessment_ID 
+	   
 	    // use exec() because no results are returned
 	    //$conn->exec($sql);
 	    //echo "Database created successfully<br>";
@@ -80,29 +62,61 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
 	    $tempvar = array();
 
 	    foreach ($conn->query($sql) as $row) 
-		{
-			// print $row['Module_Code'] . "\t";
-			// print $row['Module_Mark'] . "\t ";
-   //    print $row['Module_Title'] . "\t ";
-			// print $row['Student_ID'] . "<br/>";
+		  {
+  			$tempvar = array
+        (
+  				"module_code" => $row['Module_Code'],
+  				"module_mark" => $row['Module_Mark'],
+          "module_title" => $row['Module_Title'],
+  				"student_id" => $row['Student_ID'],
+          "staff_id" => $row['Staff_ID'],
+          "lecturer" => $row['Lecturer_Name'],
+          "semester1" => $row['Semester1'],
+          "semester2" => $row['Semester2'],
+          "year" => $row['Year'],
+          
+  			);
 
-			$tempvar = array(
-				"module_code" => $row['Module_Code'],
-				"module_mark" => $row['Module_Mark'],
-        "module_title" => $row['Module_Title'],
-				"student_id" => $row['Student_ID'],
-        "staff_id" => $row['Staff_ID'],
-        "semester1" => $row['Semester1'],
-        "semester2" => $row['Semester2'],
-        "year" => $row['Year'],
-        
-			);
-      $name = $row['Student_Name'];
-			 $jsonToEncode[] = $tempvar;
-		}
-	 print "Welcome " . $name . "! (logout)<br/>";
+        $name = $row['Student_Name'];
+        $jsonToEncode[] = $tempvar;
+		  }
+
+    $assessmentSQL = "SELECT Module.*, Assessment.*, Mark_Criteria.*, Lecturer.*, Student_Mark_Criteria.* FROM ";
+    $assessmentSQL .= "Module JOIN Assessment ON Module.Module_Code = Assessment.Module_Code JOIN ";
+    $assessmentSQL .= "Mark_Criteria ON Assessment.Assessment_ID = Mark_Criteria.Assessment_ID JOIN ";
+    $assessmentSQL .= "Lecturer ON Lecturer.Staff_ID = Module.Staff_ID JOIN "; 
+    $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID";
+
+    echo $assessmentSQL;
+     echo "<br/>";
+	 
+    foreach ($conn->query($assessmentSQL) as $row) 
+      {
+        $rawAssessmentData = array
+        (
+          "moduleCode" => $row['Module_Code'],
+          "moduleTitle" => $row['Module_Title'],
+          "staffID" => $row['Staff_ID'],
+          "lecturerName" => $row['Lecturer_Name'],
+          "assessmentName" => $row['Assessment_Name'],
+          "assessmentWeighting" => $row['Assessment_Weighting'],
+          "assessmentID" => $row['Assessment_ID'],
+          "criteriaID" => $row['Criteria_ID'],
+          "criteriaName" => $row['Criteria_Name'],
+          "weighting" => $row['Weighting'],
+          "maxMark" => $row['Max_Mark'],
+          "year" => $row['Year'],
+          "studentMark" => $row['Student_Mark'],
+          
+        );
+
+        //$name = $row['Student_Name'];
+        $assessmentDataArray[] = $rawAssessmentData;
+      }   
 		//$someJson = json_encode($tempvar);
-		$someJson = json_encode($jsonToEncode);
+		$moduleInfoJSON = json_encode($jsonToEncode);
+    $assessmentDataJSON = json_encode($assessmentDataArray);
+    print "Welcome " . $name . "! (logout)<br/>";
     }
 catch(PDOException $e)
     {
@@ -112,7 +126,7 @@ catch(PDOException $e)
 
 
 
-<div style="background-color:#586A95; color:white; border:1px solid #DDD;padding-left: 1%;border-radius: 5px;">All Modules </div>
+<div  class="section-title">All Modules </div>
 
 
 </div>
@@ -120,23 +134,26 @@ catch(PDOException $e)
 <br/>
 <br/>
 <br/>
+<button type = "button" onclick = "drawAllModules()"> Show all modules </button>
 <canvas width= "10000" height= "1000" id= "myCanvas"></canvas>
 <div id= "moduleInfoDiv">
 
 
 
 <script type="text/javascript">
-var abc = <?php echo $someJson; ?>;
-//console.log(abc.module_mark);
-//console.log(abc);
+var abc = <?php echo $moduleInfoJSON; ?>;
+var assessmentDataJSONArray = <?php echo $assessmentDataJSON; ?>;
+
 var moduleMarkArray = [];
 var moduleCodeArray = [];
 var moduleObjectArray = [];
+var globalTestvara = [];
+var globalBarPositionArray = [];
 
 var objectArray = []; // Store each bar as an object and put it into this array
 for(var i=0; i<abc.length; i++)
 {
-	//console.log(abc[i].module_code);
+	
 	moduleMarkArray[moduleMarkArray.length] = abc[i].module_mark;
 	moduleCodeArray[moduleCodeArray.length] = abc[i].module_code;
 
@@ -144,6 +161,7 @@ for(var i=0; i<abc.length; i++)
           moduleCode: abc[i].module_code,
           moduleTitle: abc[i].module_title,
           staffID: abc[i].staff_id,
+          lecturerName: abc[i].lecturer,
           semester1: abc[i].semester1,
           semester2: abc[i].semester2,
           moduleMark: abc[i].module_mark,
@@ -152,9 +170,10 @@ for(var i=0; i<abc.length; i++)
 
 }
 
-//console.log(moduleMarkArray);
+console.log( "moduleObjectArray is:");
+console.log( moduleObjectArray);
 
-
+  // Main function that draws the bar charts
  function drawBarChart ( dataArray, 
                             dataLabelArray, 
                             barWidth, 
@@ -167,6 +186,7 @@ for(var i=0; i<abc.length; i++)
       var moduleCode = "";
       var heightMultiplyer = 1.5;
       var spaceFromBottom = 20; // moves all the bars up by x pixels
+      var objectArray = [];
 
       
       canvas.height = canvasHeight;
@@ -215,54 +235,53 @@ for(var i=0; i<abc.length; i++)
 
      } // End of function drawBarChart  
 
-     function drawOneBar( context,
-                        xposition,
-                        yposition,
-                        barWidth,
-                        dataValue,
-                        spaceFromBottom)
-     {
-        try{
-            context.beginPath();
-            context.rect(xposition, yposition , barWidth, dataValue ); // X-pos, Y-Pos ( from top), width, height
-            context.fillStyle = '#ffca28';
+      // Helper function that takes 1 parameter instead of 5
+     function drawBarChartFromObject ( inputObject)
+    {
+       var a = drawBarChart(
+                    inputObject.dataArray,
+                    inputObject.dataLabelArray,
+                    inputObject.barWidth,
+                    inputObject.canvasHeight,
+                    inputObject.canvas
+                  );
 
-            
-            if( dataValue > 70) context.fillStyle = "#388e3c";
-            context.fill();
-            // Fill in the Border
-            // context.lineWidth = 2;
-            // context.strokeStyle = 'black';
-            // context.stroke();
-            
-            context.fillStyle = "black";
-            context.font = 'italic 10pt Calibri';
-            context.fillText( dataValue, xposition, yposition - spaceFromBottom);
-          }
 
-          catch( error)
-          {
-            console.log( "Failed to draw one bar " + error);
-          }
-
-          context.closePath();
-     }// End of drawOneBar
+       
+       assignClickEvent( inputObject.canvas, a, inputObject );
+    }
 
       
 
      
-    function getModuleInfo ( moduleCodeInput)
+    function getAssessmentInfo ( moduleCodeInput)
     {
-      for( var i = 0; i< moduleObjectArray.length; i++)
+      var returnDataArray = [];
+      for( var i = 0; i< assessmentDataJSONArray.length; i++)
       {
-        //console.log( moduleObjectArray[i].module_code );
-        if( moduleCodeInput == moduleObjectArray[i].moduleCode)
+        
+        if( moduleCodeInput == assessmentDataJSONArray[i].moduleCode)
         {
-          console.log( moduleObjectArray[i].moduleTitle);
-          return( moduleObjectArray[i] )
+          returnDataArray.push( assessmentDataJSONArray[i]);
+          
         }  
-      }        
-    } // End of function getModuleInfo
+      }
+
+      // If not assessment data was found try looking at the module info array
+      if( returnDataArray.length == 0)
+      {
+
+        for( var i = 0; i< moduleObjectArray.length; i++)
+       {
+          if( moduleCodeInput == moduleObjectArray[i].moduleCode)
+          {
+            returnDataArray.push( moduleObjectArray[i] );
+          }  
+        }  
+
+      }    
+      return( returnDataArray )        
+    } // End of function getAssessmentInfo
 
     function drawPartBarChart ( moduleObjectArray,
                                 canvas)
@@ -277,8 +296,7 @@ for(var i=0; i<abc.length; i++)
       var xposition = 0;
 
       resetCanvas( canvas);
-      console.log( "moduleObjectArray from drawPartBarChart is:");
-      console.log( moduleObjectArray);
+      
       for( var i = 0; i< moduleObjectArray.length; i++)
       {  
           var moduleCode = moduleObjectArray[i].moduleCode;
@@ -303,7 +321,7 @@ for(var i=0; i<abc.length; i++)
         //                       canvas) 
        
 
-        for( var j =0; j< partAArray.length; j++)
+        for( var j = 0; j< partAArray.length; j++)
          {
           dataValue = partAArray[j].moduleMark;
           
@@ -332,7 +350,7 @@ for(var i=0; i<abc.length; i++)
         } // End of For  
 
 
-        //console.log(partBArray);    
+            
     }// End of drawPartBarChart
 
 
@@ -366,7 +384,7 @@ for(var i=0; i<abc.length; i++)
 
 
       yposition = (canvasHeight - Number(averageScore2011) - spaceFromBottom);
-      xposition = 0;
+      xposition = spaceBetweenBars;
       dataValue = Number( averageScore2011.toFixed(1) ); // Trim the number to 1d.p
       
       var temparray2011 = {
@@ -383,7 +401,7 @@ for(var i=0; i<abc.length; i++)
 
       yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
       xposition = xposition + spaceBetweenBars;
-      dataValue = averageScore2012;
+      dataValue = Number( averageScore2012.toFixed(1) );
       
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);// Draw part B bar
       textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
@@ -397,44 +415,153 @@ for(var i=0; i<abc.length; i++)
           year: 2012,
       }
 
+      var arrayOfScores = [];
+      var arrayofModuleCodes = [];
+      // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
+      for( var a = 0; a < tempscorearray2012.length; a++)
+      {
+        arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
+
+        arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
+
+      }
+
+      barChartParameterObject = {
+        dataArray: arrayOfScores,
+        dataLabelArray: arrayofModuleCodes,
+        barWidth: barWidth,
+        canvasHeight: canvasHeight,
+        canvas: canvas,
+      }
+
       var newarray = [ temparray2011, temparray2012];
+
+
+
+      var objectReturned = assignClickEvent( canvas, newarray, barChartParameterObject);
+
       
-      // Add a onclick event listener to the canvas
-      canvas.addEventListener('click', function(evt) {
-        var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+      // // Add a onclick event listener to the canvas
+      // canvas.addEventListener('click', function(evt) {
+      //   var mousePos = getMousePos(canvas, evt);
+      //   var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
         
-        for( var counter = 0; counter < newarray.length; counter++ )
-        {
-          if( checkBarIsClicked( [mousePos.x, mousePos.y ], newarray[counter]) == true )
-           {
+      //   for( var counter = 0; counter < newarray.length; counter++ )
+      //   {
+      //     if( checkBarIsClicked( [mousePos.x, mousePos.y ], newarray[counter]) == true )
+      //      {
 
-            var arrayOfScores = [];
-            var arrayofModuleCodes = [];
-            // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
-            for( var a = 0; a < tempscorearray2012.length; a++)
-            {
-              arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
+      //       var arrayOfScores = [];
+      //       var arrayofModuleCodes = [];
+      //       // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
+      //       for( var a = 0; a < tempscorearray2012.length; a++)
+      //       {
+      //         arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
 
-              arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
+      //         arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
 
-            }  
-            moduleMarkArray = arrayOfScores;
-            moduleCodeArray = arrayofModuleCodes;
-            barWidth = 50;
-            canvasHeight = 200;
+      //       }  
+      //       moduleMarkArray = arrayOfScores;
+      //       moduleCodeArray = arrayofModuleCodes;
+      //       barWidth = 50;
+      //       canvasHeight = 200;
+      //       globalTestvara = [];
+      //        globalTestvara = drawBarChart( moduleMarkArray, 
+      //               moduleCodeArray, 
+      //               barWidth, 
+      //               canvasHeight,
+      //               canvas); 
+
+  
+
+      //        // Remove old click handler and replace with this new one
+      //        // Add a onclick event listener to the canvas
+      // //canvas.addEventListener('click', clickHandler, false);
+      //      } 
             
-            var testvara = drawBarChart( moduleMarkArray, 
-                    moduleCodeArray, 
-                    barWidth, 
-                    canvasHeight,
-                    canvas); 
-           } 
-        
-        }
-      }, false);
+      //   }
+      // }, false);
 
     } // End of drawSummaryChart
+
+    function populateInfoDiv( moduleCodeInput)
+    {
+          var moduleInfoDiv = document.getElementById("moduleInfoDiv");
+          var moduleInfo = getAssessmentInfo( moduleCodeInput );
+          var lecturerName = moduleInfo[0].lecturerName;
+          var moduleTitle = moduleInfo[0].moduleTitle;
+          var moduleYear = moduleInfo[0].year;
+
+          moduleInfoDiv.innerHTML = "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
+          moduleInfoDiv.innerHTML += "<p>" + moduleTitle + "</p>";
+          moduleInfoDiv.innerHTML += "<p> Lecturer: " + lecturerName + "</p>";
+
+          if( moduleInfo[0].criteriaID != undefined )
+          {  
+              for( var i = 0; i< moduleInfo.length; i++)
+              {            
+                var datum = moduleInfo[i];
+                console.log( moduleInfo[i]);
+                moduleInfoDiv.innerHTML += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
+
+              }
+          }      
+    }// End of populateInfoDiv
+
+    var globalClickFunction = null;
+    // Give the canvas a click event listener
+    function assignClickEvent( canvasObject, positionObjectArray, barChartParameters )
+    {
+      
+      try 
+      {
+        canvas.removeEventListener("click", globalClickFunction )     
+       
+      }
+      catch(error)
+      {
+        console.log( "oh well " + error);
+      }
+
+      finally {
+
+        globalClickFunction = function (event) {
+            var mousePos = getMousePos(canvas, event);
+            var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+            var barFoundFlag = false;
+            for( var counter = 0; counter < positionObjectArray.length; counter++ )
+            {
+              if( checkBarIsClicked( [mousePos.x, mousePos.y ], positionObjectArray[counter]) == true )
+               {
+                  // If bar is clicked do something
+                console.log( positionObjectArray[counter]);
+                console.log( counter + " was clicked;")
+
+                if(positionObjectArray[counter].year != undefined)
+                {
+                  drawBarChartFromObject( barChartParameters);
+                  barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                }  
+
+                if(positionObjectArray[counter].moduleCode != undefined)
+                {
+                  populateInfoDiv (positionObjectArray[counter].moduleCode );
+                  barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                }  
+
+                
+                
+               } 
+
+               if( barFoundFlag == true) break;
+            }
+          };
+         canvas.addEventListener("click", globalClickFunction,  false);
+
+         
+      }
+
+    }// End of assignClickEvent
 
     function calculateAverage(inputArray)
     {
@@ -463,7 +590,7 @@ for(var i=0; i<abc.length; i++)
 
 
       var barWidth = 50;
-      var canvasHeight = 200;
+      var canvasHeight = 300;
 
       
       // drawBarChart( moduleMarkArray, 
@@ -471,24 +598,21 @@ for(var i=0; i<abc.length; i++)
       //               barWidth, 
       //               canvasHeight,
       //               canvas); 
-      // function clickHandler(event) {
-      //   var mousePos = getMousePos(canvas, event);
-      //   var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
 
-      //   for( var counter = 0; counter < objectArray.length; counter++ )
-      //   {
-      //     if( checkBarIsClicked( [mousePos.x, mousePos.y ], objectArray[counter]) == true)
-      //     {
-      //       console.log(message);
-
-      //     }            
-      //   }
-      // }// End of clickHandler
 
       // Add a onclick event listener to the canvas
-      //canvas.addEventListener('click', clickHandler, false);
-
       
+
+      // Draws a bar chart with every module
+      function drawAllModules()
+      {
+        resetCanvas( canvas);
+        drawBarChart( moduleMarkArray, 
+                    moduleCodeArray, 
+                    barWidth, 
+                    canvasHeight,
+                    canvas); 
+      }// End of drawAllModules
 
       //resetCanvas(canvas);
 
@@ -496,11 +620,6 @@ for(var i=0; i<abc.length; i++)
 
      //canvas.removeEventListener('click', clickHandler);
 
-     // var moduleInfo = getModuleInfo( objectToCompare.moduleCode );
-
-     //      document.getElementById("moduleInfoDiv").innerHTML = "<p>" + moduleInfo.moduleCode + "</p>";
-     //      document.getElementById("moduleInfoDiv").innerHTML += "<p>" + moduleInfo.moduleTitle + "</p>";
-     //      document.getElementById("moduleInfoDiv").innerHTML += "<p> Lecturer:" + moduleInfo.staffID + "</p>";
     
 
 </script>
