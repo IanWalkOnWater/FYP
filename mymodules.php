@@ -87,7 +87,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
     $assessmentSQL .= "Lecturer ON Lecturer.Staff_ID = Module.Staff_ID JOIN "; 
     $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID";
 
-    echo $assessmentSQL;
+   // echo $assessmentSQL;
      echo "<br/>";
 	 
     foreach ($conn->query($assessmentSQL) as $row) 
@@ -135,7 +135,9 @@ catch(PDOException $e)
 <br/>
 <br/>
 <button type = "button" onclick = "drawAllModules()"> Show all modules </button>
-<canvas width= "10000" height= "1000" id= "myCanvas"></canvas>
+<button type = "button" onclick = "resetButtonHandler()"> reset </button>
+<button type = "button" > Compare </button>
+<canvas width= "10000" height= "300" id= "myCanvas"></canvas>
 <div id= "moduleInfoDiv">
 
 
@@ -178,7 +180,8 @@ console.log( moduleObjectArray);
                             dataLabelArray, 
                             barWidth, 
                             canvasHeight,
-                            canvas) 
+                            canvas,
+                            lengthMultiplier) 
     {     
       var dataValue = 0;
       var xposition = 0;
@@ -200,7 +203,7 @@ console.log( moduleObjectArray);
         
         yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
         
-        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
 
         topLeft = [ xposition, yposition ];
         topRight = [ xposition + barWidth, yposition  ];
@@ -231,6 +234,8 @@ console.log( moduleObjectArray);
       
       }; // End of For
 
+      
+
       return objectArray;
 
      } // End of function drawBarChart  
@@ -243,7 +248,8 @@ console.log( moduleObjectArray);
                     inputObject.dataLabelArray,
                     inputObject.barWidth,
                     inputObject.canvasHeight,
-                    inputObject.canvas
+                    inputObject.canvas,
+                    inputObject.lengthMultiplier
                   );
 
 
@@ -374,13 +380,13 @@ console.log( moduleObjectArray);
             default: console.log( "error in switch with: " + moduleObjectArray[i]);
           }
 
-
       }  
      var averageScore2011 = calculateAverage( tempscorearray2011);
      var averageScore2012 = calculateAverage( tempscorearray2012);
      var spaceFromBottom = 20;
      var spaceBetweenBars = 70;
      var barwidth = 50;
+     var lengthMultiplier = 2;
 
 
       yposition = (canvasHeight - Number(averageScore2011) - spaceFromBottom);
@@ -395,7 +401,7 @@ console.log( moduleObjectArray);
           year: 2011,
       }
       
-      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
       var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
       context.fillText( "Part A", xposition, textPosition);
 
@@ -403,7 +409,7 @@ console.log( moduleObjectArray);
       xposition = xposition + spaceBetweenBars;
       dataValue = Number( averageScore2012.toFixed(1) );
       
-      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);// Draw part B bar
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);// Draw part B bar
       textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
       context.fillText( "Part B", xposition, textPosition);
 
@@ -432,55 +438,12 @@ console.log( moduleObjectArray);
         barWidth: barWidth,
         canvasHeight: canvasHeight,
         canvas: canvas,
+        lengthMultiplier: 2
       }
 
       var newarray = [ temparray2011, temparray2012];
 
-
-
       var objectReturned = assignClickEvent( canvas, newarray, barChartParameterObject);
-
-      
-      // // Add a onclick event listener to the canvas
-      // canvas.addEventListener('click', function(evt) {
-      //   var mousePos = getMousePos(canvas, evt);
-      //   var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-        
-      //   for( var counter = 0; counter < newarray.length; counter++ )
-      //   {
-      //     if( checkBarIsClicked( [mousePos.x, mousePos.y ], newarray[counter]) == true )
-      //      {
-
-      //       var arrayOfScores = [];
-      //       var arrayofModuleCodes = [];
-      //       // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
-      //       for( var a = 0; a < tempscorearray2012.length; a++)
-      //       {
-      //         arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
-
-      //         arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
-
-      //       }  
-      //       moduleMarkArray = arrayOfScores;
-      //       moduleCodeArray = arrayofModuleCodes;
-      //       barWidth = 50;
-      //       canvasHeight = 200;
-      //       globalTestvara = [];
-      //        globalTestvara = drawBarChart( moduleMarkArray, 
-      //               moduleCodeArray, 
-      //               barWidth, 
-      //               canvasHeight,
-      //               canvas); 
-
-  
-
-      //        // Remove old click handler and replace with this new one
-      //        // Add a onclick event listener to the canvas
-      // //canvas.addEventListener('click', clickHandler, false);
-      //      } 
-            
-      //   }
-      // }, false);
 
     } // End of drawSummaryChart
 
@@ -557,10 +520,7 @@ console.log( moduleObjectArray);
             }
           };
          canvas.addEventListener("click", globalClickFunction,  false);
-
-         
       }
-
     }// End of assignClickEvent
 
     function calculateAverage(inputArray)
@@ -584,23 +544,9 @@ console.log( moduleObjectArray);
 
     //drawPartBarChart ( moduleObjectArray, canvas);
     var canvas = document.getElementById('myCanvas');
-    //resetCanvas(canvas);
-    //canvas = document.getElementById('myCanvas');
-    
-
 
       var barWidth = 50;
       var canvasHeight = 300;
-
-      
-      // drawBarChart( moduleMarkArray, 
-      //               moduleCodeArray, 
-      //               barWidth, 
-      //               canvasHeight,
-      //               canvas); 
-
-
-      // Add a onclick event listener to the canvas
       
 
       // Draws a bar chart with every module
@@ -611,14 +557,21 @@ console.log( moduleObjectArray);
                     moduleCodeArray, 
                     barWidth, 
                     canvasHeight,
-                    canvas); 
+                    canvas,
+                    2 // Length Multiplier
+                    ); 
       }// End of drawAllModules
 
-      //resetCanvas(canvas);
+      //Function that resets the canvas to when the page is first loaded
+      function resetButtonHandler()
+      {
+        resetCanvas(canvas);
+        drawSummaryChart( moduleObjectArray, canvas);
+      };
 
      drawSummaryChart( moduleObjectArray, canvas);
 
-     //canvas.removeEventListener('click', clickHandler);
+
 
     
 

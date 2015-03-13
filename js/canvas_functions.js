@@ -25,16 +25,25 @@
                         yposition,
                         barWidth,
                         dataValue,
-                        spaceFromBottom)
+                        spaceFromBottom,
+                        lengthMultiplier)
      {
-        yposition = 300 - (dataValue*2) - (spaceFromBottom -5 );
+        
         // Check is spaceFromBottom is passed in
         if( spaceFromBottom == undefined) spaceFromBottom = 20;
+        if( lengthMultiplier == undefined) lengthMultiplier = 1.0;
+
+        // if length multiplyer is 
+        if( lengthMultiplier > 1)
+          yposition = context.canvas.height - (dataValue * lengthMultiplier) - (spaceFromBottom - 5 );
+
         var labelPosition = xposition + (barWidth/3); // Get the labelPosition of the bar
 
         try{
+
+            drawGreyBar(context, xposition, 100, spaceFromBottom, lengthMultiplier);
             context.beginPath();
-            context.rect(xposition, yposition , barWidth, dataValue *2); // X-pos, Y-Pos ( from top), width, height
+            context.rect(xposition, yposition , barWidth, dataValue * lengthMultiplier); // X-pos, Y-Pos ( from top), width, height
             context.fillStyle = '#ffca28';
 
             
@@ -48,6 +57,7 @@
             context.fillStyle = "black";
             context.font = 'italic 10pt Calibri';
             context.fillText( dataValue, labelPosition, yposition - spaceFromBottom);
+            context.closePath();
           }
 
           catch( error)
@@ -55,8 +65,26 @@
             console.log( "Failed to draw one bar " + error);
           }
 
-          context.closePath();
+          
      }// End of drawOneBar
+
+     function drawGreyBar (context, xposition, Value, spaceFromBottom, lengthMultiplier)
+     {  
+
+      // Check is spaceFromBottom is passed in
+      if( spaceFromBottom == undefined) spaceFromBottom = 20;
+      if( lengthMultiplier == undefined) lengthMultiplier = 1.0;
+
+      var yposition = context.canvas.height - ( Number(Value) * lengthMultiplier ) - spaceFromBottom;
+
+      context.beginPath();
+      context.rect(xposition, yposition , barWidth, dataValue * lengthMultiplier); // X-pos, Y-Pos ( from top), width, height
+      context.fillStyle = '#E0E0E0';
+
+      context.fill();
+
+      context.closePath();
+     }
 
      function checkX( xCoordinate, leftCoordinate, rightCoordinate)
      {
