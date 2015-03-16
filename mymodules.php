@@ -107,6 +107,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
           "maxMark" => $row['Max_Mark'],
           "year" => $row['Year'],
           "studentMark" => $row['Student_Mark'],
+          "criteriaFeedback" => $row[ 'Criteria_Feedback']
           
         );
 
@@ -143,102 +144,34 @@ catch(PDOException $e)
 
 
 <script type="text/javascript">
-var abc = <?php echo $moduleInfoJSON; ?>;
-var assessmentDataJSONArray = <?php echo $assessmentDataJSON; ?>;
+  var abc = <?php echo $moduleInfoJSON; ?>;
+  var assessmentDataJSONArray = <?php echo $assessmentDataJSON; ?>;
 
-var moduleMarkArray = [];
-var moduleCodeArray = [];
-var moduleObjectArray = [];
-var globalTestvara = [];
-var globalBarPositionArray = [];
+  var moduleMarkArray = [];
+  var moduleCodeArray = [];
+  var moduleObjectArray = [];
+  var globalTestvara = [];
+  var globalBarPositionArray = [];
 
-var objectArray = []; // Store each bar as an object and put it into this array
-for(var i=0; i<abc.length; i++)
-{
-	
-	moduleMarkArray[moduleMarkArray.length] = abc[i].module_mark;
-	moduleCodeArray[moduleCodeArray.length] = abc[i].module_code;
+  var objectArray = []; // Store each bar as an object and put it into this array
+  for(var i=0; i<abc.length; i++)
+  {
+  	
+  	moduleMarkArray[moduleMarkArray.length] = abc[i].module_mark;
+  	moduleCodeArray[moduleCodeArray.length] = abc[i].module_code;
 
-  moduleObjectArray.push({  
-          moduleCode: abc[i].module_code,
-          moduleTitle: abc[i].module_title,
-          staffID: abc[i].staff_id,
-          lecturerName: abc[i].lecturer,
-          semester1: abc[i].semester1,
-          semester2: abc[i].semester2,
-          moduleMark: abc[i].module_mark,
-          year: abc[i].year,
-        });
-
-}
-
-console.log( "moduleObjectArray is:");
-console.log( moduleObjectArray);
-
-  // Main function that draws the bar charts
- function drawBarChart ( dataArray, 
-                            dataLabelArray, 
-                            barWidth, 
-                            canvasHeight,
-                            canvas,
-                            lengthMultiplier) 
-    {     
-      var dataValue = 0;
-      var xposition = 0;
-      var spaceBetweenBars = 70;
-      var moduleCode = "";
-      var heightMultiplyer = 1.5;
-      var spaceFromBottom = 20; // moves all the bars up by x pixels
-      var objectArray = [];
-
-      
-      canvas.height = canvasHeight;
-      var context = canvas.getContext('2d');
-
-      for( var i =0; i< dataArray.length; i++)
-      {
-        dataValue = dataArray[i];
-
-        xposition = xposition + (spaceBetweenBars);
-        
-        yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
-        
-        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
-
-        topLeft = [ xposition, yposition ];
-        topRight = [ xposition + barWidth, yposition  ];
-        bottomLeft = [xposition , yposition + dataValue];
-        bottomRight = [xposition + barWidth, yposition + dataValue];
-      
-        if( dataArray.length == dataLabelArray.length)
-        {
-          context.font = 'italic 15pt Calibri';
-            
-          //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
-          //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
-          var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
-          context.fillText( dataLabelArray[i], xposition, textPosition);//190);//yposition + dataValue + 20);
-          moduleCode = dataLabelArray[i];
-        }
-        else{
-          moduleCode = "unknown";
-        }  
-
-        objectArray.push({  
-          topLeft : [ xposition, yposition ],
-          topRight : [ xposition + barWidth , yposition  ],
-          bottomLeft : [xposition , yposition + dataValue],
-          bottomRight : [xposition + barWidth, yposition + dataValue],
-          moduleCode: moduleCode,
-        });
-      
-      }; // End of For
-
-      
-
-      return objectArray;
-
-     } // End of function drawBarChart  
+    moduleObjectArray.push({  
+            moduleCode: abc[i].module_code,
+            moduleTitle: abc[i].module_title,
+            staffID: abc[i].staff_id,
+            lecturerName: abc[i].lecturer,
+            semester1: abc[i].semester1,
+            semester2: abc[i].semester2,
+            moduleMark: abc[i].module_mark,
+            year: abc[i].year,
+          });
+  }
+    
 
       // Helper function that takes 1 parameter instead of 5
      function drawBarChartFromObject ( inputObject)
@@ -252,14 +185,10 @@ console.log( moduleObjectArray);
                     inputObject.lengthMultiplier
                   );
 
-
-       
        assignClickEvent( inputObject.canvas, a, inputObject );
     }
 
-      
-
-     
+    // Input a module code and grab all relevant module and assessment info
     function getAssessmentInfo ( moduleCodeInput)
     {
       var returnDataArray = [];
@@ -288,76 +217,6 @@ console.log( moduleObjectArray);
       }    
       return( returnDataArray )        
     } // End of function getAssessmentInfo
-
-    function drawPartBarChart ( moduleObjectArray,
-                                canvas)
-    {
-      var partAArray = [];
-      var partBArray = [];
-      var canvasHeight = canvas.height;
-      var context = canvas.getContext('2d');
-      var barWidth = 50; 
-      var spaceFromBottom = 20;
-      var spaceBetweenBars = 70;
-      var xposition = 0;
-
-      resetCanvas( canvas);
-      
-      for( var i = 0; i< moduleObjectArray.length; i++)
-      {  
-          var moduleCode = moduleObjectArray[i].moduleCode;
-          var partCode = moduleCode.substr(2,1);
-          switch( partCode)
-          {
-            case "A": partAArray.push(moduleObjectArray[i]);
-                      break;           
-            case "B": partBArray.push(moduleObjectArray[i]);
-                      break;          
-            default: console.log( "error in switch with: " + partCode);
-          }
-
-
-         
-          
-      }// End of for 
-        // drawBarChart ( dataArray, 
-        //                       dataLabelArray, 
-        //                       barWidth, 
-        //                       canvasHeight,
-        //                       canvas) 
-       
-
-        for( var j = 0; j< partAArray.length; j++)
-         {
-          dataValue = partAArray[j].moduleMark;
-          
-           xposition = xposition + (spaceBetweenBars);
-          
-           yposition = (canvasHeight - Number(dataValue) );// - spaceFromBottom) ;
-          
-           drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom);
-
-          // topLeft = [ xposition, yposition ];
-          // topRight = [ xposition + barWidth, yposition  ];
-          // bottomLeft = [xposition , yposition + dataValue];
-          // bottomRight = [xposition + barWidth, yposition + dataValue];
-        
-          // if( dataArray.length == dataLabelArray.length)
-          // {
-          //   context.font = 'italic 15pt Calibri';
-              
-          //   //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
-          //   //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
-          //   var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
-          //   context.fillText( dataLabelArray[i], xposition, textPosition);//190);//yposition + dataValue + 20);
-          // }
-         
-        
-        } // End of For  
-
-
-            
-    }// End of drawPartBarChart
 
 
     function drawSummaryChart( moduleObjectArray, canvas)
@@ -464,8 +323,8 @@ console.log( moduleObjectArray);
               for( var i = 0; i< moduleInfo.length; i++)
               {            
                 var datum = moduleInfo[i];
-                console.log( moduleInfo[i]);
                 moduleInfoDiv.innerHTML += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
+                moduleInfoDiv.innerHTML += "<p>" + datum.criteriaFeedback + "</p>";
 
               }
           }      
@@ -483,7 +342,7 @@ console.log( moduleObjectArray);
       }
       catch(error)
       {
-        console.log( "oh well " + error);
+        console.log( error);
       }
 
       finally {
@@ -542,34 +401,37 @@ console.log( moduleObjectArray);
       return result;
     }// End of calculateAverage
 
-    //drawPartBarChart ( moduleObjectArray, canvas);
-    var canvas = document.getElementById('myCanvas');
 
-      var barWidth = 50;
-      var canvasHeight = 300;
       
 
-      // Draws a bar chart with every module
-      function drawAllModules()
-      {
-        resetCanvas( canvas);
-        drawBarChart( moduleMarkArray, 
-                    moduleCodeArray, 
-                    barWidth, 
-                    canvasHeight,
-                    canvas,
-                    2 // Length Multiplier
-                    ); 
-      }// End of drawAllModules
+    // Draws a bar chart with every module
+    function drawAllModules()
+    {
+      resetCanvas( canvas);
+      drawBarChart( moduleMarkArray, 
+                  moduleCodeArray, 
+                  barWidth, 
+                  canvasHeight,
+                  canvas,
+                  2 // Length Multiplier
+                  ); 
+    }// End of drawAllModules
 
-      //Function that resets the canvas to when the page is first loaded
-      function resetButtonHandler()
-      {
-        resetCanvas(canvas);
-        drawSummaryChart( moduleObjectArray, canvas);
-      };
+    //Function that resets the canvas to when the page is first loaded
+    function resetButtonHandler()
+    {
+      resetCanvas(canvas);
+      drawSummaryChart( moduleObjectArray, canvas);
+    };
 
-     drawSummaryChart( moduleObjectArray, canvas);
+/**********************************************************************/
+console.log( "moduleObjectArray is:");
+console.log( moduleObjectArray);
+  var canvas = document.getElementById('myCanvas');
+
+  var barWidth = 50;
+  var canvasHeight = 300;
+  drawSummaryChart( moduleObjectArray, canvas);
 
 
 

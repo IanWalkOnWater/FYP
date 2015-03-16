@@ -56,7 +56,7 @@
             
             context.fillStyle = "black";
             context.font = 'italic 10pt Calibri';
-            context.fillText( dataValue, labelPosition, yposition - spaceFromBottom);
+            context.fillText( dataValue, labelPosition, yposition - (spaceFromBottom/2));
             context.closePath();
           }
 
@@ -84,7 +84,70 @@
       context.fill();
 
       context.closePath();
-     }
+     }// End of draw grey bar
+
+     // Main function that draws the bar charts
+ function drawBarChart ( dataArray, 
+                            dataLabelArray, 
+                            barWidth, 
+                            canvasHeight,
+                            canvas,
+                            lengthMultiplier) 
+    {     
+      var dataValue = 0;
+      var xposition = 0;
+      var spaceBetweenBars = 70;
+      var moduleCode = "";
+      var heightMultiplyer = 1.5;
+      var spaceFromBottom = 20; // moves all the bars up by x pixels
+      var objectArray = [];
+
+      
+      canvas.height = canvasHeight;
+      var context = canvas.getContext('2d');
+
+      for( var i =0; i< dataArray.length; i++)
+      {
+        dataValue = dataArray[i];
+
+        xposition = xposition + (spaceBetweenBars);
+        
+        yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
+        
+        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
+
+        topLeft = [ xposition, yposition ];
+        topRight = [ xposition + barWidth, yposition  ];
+        bottomLeft = [xposition , yposition + dataValue];
+        bottomRight = [xposition + barWidth, yposition + dataValue];
+      
+        if( dataArray.length == dataLabelArray.length)
+        {
+          context.font = 'italic 15pt Calibri';
+            
+          //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
+          //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
+          var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+          context.fillText( dataLabelArray[i], xposition, textPosition);//190);//yposition + dataValue + 20);
+          moduleCode = dataLabelArray[i];
+        }
+        else{
+          moduleCode = "unknown";
+        }  
+
+        objectArray.push({  
+          topLeft : [ xposition, yposition ],
+          topRight : [ xposition + barWidth , yposition  ],
+          bottomLeft : [xposition , yposition + dataValue],
+          bottomRight : [xposition + barWidth, yposition + dataValue],
+          moduleCode: moduleCode,
+        });
+      
+      }; // End of For
+
+      return objectArray;
+
+     } // End of function drawBarChart
 
      function checkX( xCoordinate, leftCoordinate, rightCoordinate)
      {
