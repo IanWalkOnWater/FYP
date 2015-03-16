@@ -280,20 +280,35 @@ catch(PDOException $e)
           year: 2012,
       }
 
-      var arrayOfScores = [];
-      var arrayofModuleCodes = [];
+      var arrayOfScores2011 = [];
+      var arrayOfScores2012 = [];
+      var arrayofModuleCodes2011 =[];
+      var arrayofModuleCodes2012 = [];
       // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
-      for( var a = 0; a < tempscorearray2012.length; a++)
+      for( var a = 0; a < tempscorearray2011.length; a++)
       {
-        arrayOfScores.push( Number(tempscorearray2012[a].moduleMark));
-
-        arrayofModuleCodes.push( tempscorearray2012[a].moduleCode);
-
+        arrayOfScores2011.push( Number(tempscorearray2011[a].moduleMark));
+        arrayofModuleCodes2011.push( tempscorearray2011[a].moduleCode);
       }
 
-      barChartParameterObject = {
-        dataArray: arrayOfScores,
-        dataLabelArray: arrayofModuleCodes,
+      barChartParameterObject2011 = {
+        dataArray: arrayOfScores2011,
+        dataLabelArray: arrayofModuleCodes2011,
+        barWidth: barWidth,
+        canvasHeight: canvasHeight,
+        canvas: canvas,
+        lengthMultiplier: 2
+      }
+      // Do the same for 2012
+      for( var a = 0; a < tempscorearray2012.length; a++)
+      {
+        arrayOfScores2012.push( Number(tempscorearray2012[a].moduleMark));
+        arrayofModuleCodes2012.push( tempscorearray2012[a].moduleCode);
+      }
+
+      barChartParameterObject2012 = {
+        dataArray: arrayOfScores2012,
+        dataLabelArray: arrayofModuleCodes2012,
         barWidth: barWidth,
         canvasHeight: canvasHeight,
         canvas: canvas,
@@ -302,7 +317,7 @@ catch(PDOException $e)
 
       var newarray = [ temparray2011, temparray2012];
 
-      var objectReturned = assignClickEvent( canvas, newarray, barChartParameterObject);
+      assignClickEvent( canvas, newarray, barChartParameterObject2011 , barChartParameterObject2012);
 
     } // End of drawSummaryChart
 
@@ -332,7 +347,7 @@ catch(PDOException $e)
 
     var globalClickFunction = null;
     // Give the canvas a click event listener
-    function assignClickEvent( canvasObject, positionObjectArray, barChartParameters )
+    function assignClickEvent( canvasObject, positionObjectArray, barChartParameters, optionalInput )
     {
       
       try 
@@ -361,8 +376,17 @@ catch(PDOException $e)
 
                 if(positionObjectArray[counter].year != undefined)
                 {
-                  drawBarChartFromObject( barChartParameters);
-                  barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                  switch( positionObjectArray[counter].year)
+                  {
+                    case 2011: drawBarChartFromObject( barChartParameters);
+                              barFoundFlag = true;
+                              console.log("barChartParameters is ")
+                              console.log(barChartParameters); // Once a bar is clicked, stopping looping around
+                              break;
+                    case 2012: drawBarChartFromObject( optionalInput);
+                              barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                              break;                              
+                  };
                 }  
 
                 if(positionObjectArray[counter].moduleCode != undefined)
