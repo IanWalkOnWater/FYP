@@ -138,9 +138,11 @@ catch(PDOException $e)
 <button type = "button" onclick = "drawAllModules()"> Show all modules </button>
 <button type = "button" onclick = "resetButtonHandler()"> reset </button>
 <button type = "button" onclick = "compareButtonHandler()"> Compare </button>
-<canvas width= "10000" height= "300" id= "myCanvas"></canvas>
-<div id= "moduleInfoDiv">
-
+<canvas width = "10000" height= "300" id= "myCanvas"></canvas>
+<div id = "moduleInfoContainer">
+  <div id = "moduleInfoDiv">
+  <div id = "moduleInfoDiv2">  
+</div>
 
 
 <script type="text/javascript">
@@ -225,7 +227,8 @@ catch(PDOException $e)
     {
      
       var tempscorearray2011 = [];
-      var tempscorearray2012 = [];   
+      var tempscorearray2012 = [];
+      var scorearray2015 = [];   
       var context = canvas.getContext('2d');
 
       for( var i = 0; i< moduleObjectArray.length; i++)
@@ -237,13 +240,16 @@ catch(PDOException $e)
             case "2011": tempscorearray2011.push(moduleObjectArray[i]);
                       break;           
             case "2012": tempscorearray2012.push(moduleObjectArray[i]);
-                      break;          
+                      break;
+            case "2015": scorearray2015.push(moduleObjectArray[i]);
+                      break;                    
             default: console.log( "error in switch with: " + moduleObjectArray[i]);
           }
 
       }  
      var averageScore2011 = calculateAverage( tempscorearray2011);
      var averageScore2012 = calculateAverage( tempscorearray2012);
+     var averageScore2015 = calculateAverage( scorearray2015);
      var spaceFromBottom = 20;
      var spaceBetweenBars = 70;
      var barwidth = 50;
@@ -266,7 +272,7 @@ catch(PDOException $e)
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
       var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
       context.fillText( "Part A", xposition, textPosition);
-
+      // Do the same for 2012 data
       yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
       xposition = xposition + spaceBetweenBars;
       dataValue = Number( averageScore2012.toFixed(1) );
@@ -283,11 +289,30 @@ catch(PDOException $e)
           value : dataValue,
           year: 2012,
       }
+      // Do same again for 2015 data
+      yposition = (canvasHeight - Number(averageScore2015) - spaceFromBottom);
+      xposition = xposition + spaceBetweenBars;
+      dataValue = Number( averageScore2015.toFixed(1) ); // Trim the number to 1d.p
+      
+      var temparray2015 = {
+        topLeft : [ xposition, yposition ],
+          topRight : [ xposition + barWidth , yposition  ],
+          bottomLeft : [xposition , yposition + dataValue],
+          bottomRight : [xposition + barWidth, yposition + dataValue],
+          value : dataValue,
+          year: 2015,
+      }
+      
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
+      var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
+      context.fillText( "Part T", xposition, textPosition);
 
       var arrayOfScores2011 = [];
       var arrayOfScores2012 = [];
+      var arrayOfScores2015 = [];
       var arrayofModuleCodes2011 =[];
       var arrayofModuleCodes2012 = [];
+      var arrayofModuleCodes2015 = [];
       // I hate to do this but iterate over tempscorearray and pull out all mark scores and assign it to modulemarkarray
       for( var a = 0; a < tempscorearray2011.length; a++)
       {
@@ -318,10 +343,25 @@ catch(PDOException $e)
         canvas: canvas,
         lengthMultiplier: 2
       }
+      // Do same again for 2015 data
+      for( var a = 0; a < scorearray2015.length; a++)
+      {
+        arrayOfScores2015.push( Number(scorearray2015[a].moduleMark));
+        arrayofModuleCodes2015.push( scorearray2015[a].moduleCode);
+      }
 
-      var newarray = [ temparray2011, temparray2012];
+      barChartParameterObject2015 = {
+        dataArray: arrayOfScores2015,
+        dataLabelArray: arrayofModuleCodes2015,
+        barWidth: barWidth,
+        canvasHeight: canvasHeight,
+        canvas: canvas,
+        lengthMultiplier: 2
+      }
 
-      assignClickEvent( canvas, newarray, barChartParameterObject2011 , barChartParameterObject2012);
+      var newarray = [ temparray2011, temparray2012, temparray2015];
+
+      assignClickEvent( canvas, newarray, barChartParameterObject2011 , barChartParameterObject2012, barChartParameterObject2015);
 
     } // End of drawSummaryChart
     /**************************************************************
@@ -337,8 +377,6 @@ catch(PDOException $e)
           var moduleYear = moduleInfo[0].year;
           var htmlString = "";
 
-
-          
           htmlString += "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
           
           htmlString += "<p >" + moduleTitle + "</p>";
@@ -370,12 +408,12 @@ catch(PDOException $e)
             
           }
           
-           moduleInfoDiv.innerHTML = htmlString;      
+          moduleInfoDiv.innerHTML = htmlString;      
     }// End of populateInfoDiv
 
     var globalClickFunction = null;
     // Give the canvas a click event listener
-    function assignClickEvent( canvasObject, positionObjectArray, barChartParameters, optionalInput )
+    function assignClickEvent( canvasObject, positionObjectArray, barChartParameters, optionalInput, optionalInput2 )
     {
       
       try 
@@ -411,7 +449,10 @@ catch(PDOException $e)
                                 break;
                       case 2012: drawBarChartFromObject( optionalInput);
                                 barFoundFlag = true; // Once a bar is clicked, stopping looping around
-                                break;                              
+                                break;
+                      case 2015: drawBarChartFromObject( optionalInput2);
+                                barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                                break;                                        
                     };
                   }  
 
@@ -458,9 +499,7 @@ catch(PDOException $e)
                         barSelectedArray.splice( barSelectedArray.indexOf( barPositionObject), 1 );
                       } 
                     }// End of else    
-
                   }
-
                } 
                if( barFoundFlag == true) break;
             }
@@ -490,7 +529,6 @@ catch(PDOException $e)
 
 
       
-
     // Draws a bar chart with every module
     function drawAllModules()
     {
@@ -527,22 +565,24 @@ catch(PDOException $e)
         compareMode = false;
       } 
       drawBarChartFromObject( currentCanvasChartObject);
-
     }
 
     // Toggles collapsible content
-    function toggleOpen (elem) {
-              var el = elem.parentNode;
-              
-              if (el.className.indexOf("open") == -1) {
-                  el.className += " open";
-              } else {
-                  var pieces = el.className.split(" ");
-                  pieces.splice(pieces.indexOf("open"), 1);
-                  el.className = pieces.join(" ");
-              }
-              
-          }
+    function toggleOpen (elementObject) 
+    {
+        var elem = elementObject.parentNode;
+        
+        if (elem.className.indexOf("open") == -1) 
+        {
+            elem.className += " open";
+        } 
+        else 
+        {
+          var pieces = elem.className.split(" ");
+          pieces.splice(pieces.indexOf("open"), 1);
+          elem.className = pieces.join(" ");
+        }  
+    }
 /**********************************************************************/
 console.log( "moduleObjectArray is:");
 console.log( moduleObjectArray);
