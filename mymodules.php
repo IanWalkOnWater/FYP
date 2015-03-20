@@ -87,7 +87,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
     $assessmentSQL .= "Lecturer ON Lecturer.Staff_ID = Module.Staff_ID JOIN "; 
     $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID";
 
-   // echo $assessmentSQL;
+    echo $assessmentSQL;
      echo "<br/>";
 	 
     foreach ($conn->query($assessmentSQL) as $row) 
@@ -130,14 +130,14 @@ catch(PDOException $e)
 <div  class="section-title">All Modules </div>
 
 
-</div>
+
 
 <br/>
 <br/>
 <br/>
 <button type = "button" onclick = "drawAllModules()"> Show all modules </button>
 <button type = "button" onclick = "resetButtonHandler()"> reset </button>
-<button type = "button" > Compare </button>
+<button type = "button" onclick = "compareButtonHandler()"> Compare </button>
 <canvas width= "10000" height= "300" id= "myCanvas"></canvas>
 <div id= "moduleInfoDiv">
 
@@ -182,9 +182,11 @@ catch(PDOException $e)
                     inputObject.barWidth,
                     inputObject.canvasHeight,
                     inputObject.canvas,
-                    inputObject.lengthMultiplier
+                    inputObject.lengthMultiplier,
+                    inputObject.fadedColour
                   );
-
+       currentCanvasChart = inputObject;
+      
        assignClickEvent( inputObject.canvas, a, inputObject );
     }
 
@@ -257,6 +259,7 @@ catch(PDOException $e)
           topRight : [ xposition + barWidth , yposition  ],
           bottomLeft : [xposition , yposition + dataValue],
           bottomRight : [xposition + barWidth, yposition + dataValue],
+          value : dataValue,
           year: 2011,
       }
       
@@ -277,6 +280,7 @@ catch(PDOException $e)
           topRight : [ xposition + barWidth , yposition  ],
           bottomLeft : [xposition , yposition + dataValue],
           bottomRight : [xposition + barWidth, yposition + dataValue],
+          value : dataValue,
           year: 2012,
       }
 
@@ -320,29 +324,53 @@ catch(PDOException $e)
       assignClickEvent( canvas, newarray, barChartParameterObject2011 , barChartParameterObject2012);
 
     } // End of drawSummaryChart
-
+    /**************************************************************
+    * populate the info div with module and assessment info
+    ***************************************************************/
     function populateInfoDiv( moduleCodeInput)
     {
           var moduleInfoDiv = document.getElementById("moduleInfoDiv");
           var moduleInfo = getAssessmentInfo( moduleCodeInput );
+         
           var lecturerName = moduleInfo[0].lecturerName;
           var moduleTitle = moduleInfo[0].moduleTitle;
           var moduleYear = moduleInfo[0].year;
+          var htmlString = "";
 
-          moduleInfoDiv.innerHTML = "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
-          moduleInfoDiv.innerHTML += "<p>" + moduleTitle + "</p>";
-          moduleInfoDiv.innerHTML += "<p> Lecturer: " + lecturerName + "</p>";
 
+          
+          htmlString += "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
+          
+          htmlString += "<p >" + moduleTitle + "</p>";
+          htmlString += "<p> Lecturer: " + lecturerName + "</p>";
+
+          //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
           {  
+              
+              var numberOf = 1;
               for( var i = 0; i< moduleInfo.length; i++)
-              {            
-                var datum = moduleInfo[i];
-                moduleInfoDiv.innerHTML += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
-                moduleInfoDiv.innerHTML += "<p>" + datum.criteriaFeedback + "</p>";
+              { 
 
+                if (numberOf == 1) htmlString += "<div class = 'infoRow' >";
+                htmlString += "<div class='collapsable' data-height='400'>";
+                htmlString += "<div onclick='toggleOpen(this);'>";           
+                var datum = moduleInfo[i];
+                htmlString += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
+                htmlString += "<p>" + datum.criteriaFeedback + "</p>";
+                htmlString += "</div>"; 
+                htmlString += "</div>";
+                if (numberOf == 4)
+                {
+                  numberOf = 0;
+                  htmlString += "</div  >";
+                } 
+                numberOf++;
               }
-          }      
+            
+          }
+          
+           moduleInfoDiv.innerHTML = htmlString;      
     }// End of populateInfoDiv
 
     var globalClickFunction = null;
@@ -353,7 +381,6 @@ catch(PDOException $e)
       try 
       {
         canvas.removeEventListener("click", globalClickFunction )     
-       
       }
       catch(error)
       {
@@ -363,42 +390,78 @@ catch(PDOException $e)
       finally {
 
         globalClickFunction = function (event) {
-            var mousePos = getMousePos(canvas, event);
+            var mousePos = getMousePos(canvasObject, event);
             var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
             var barFoundFlag = false;
             for( var counter = 0; counter < positionObjectArray.length; counter++ )
             {
               if( checkBarIsClicked( [mousePos.x, mousePos.y ], positionObjectArray[counter]) == true )
                {
+                  var barPositionObject = positionObjectArray[counter];
                   // If bar is clicked do something
-                console.log( positionObjectArray[counter]);
-                console.log( counter + " was clicked;")
+                  console.log( barPositionObject);
+                  console.log( counter + " was clicked;")
 
-                if(positionObjectArray[counter].year != undefined)
-                {
-                  switch( positionObjectArray[counter].year)
+                  if(barPositionObject.year != undefined)
                   {
-                    case 2011: drawBarChartFromObject( barChartParameters);
-                              barFoundFlag = true;
-                              console.log("barChartParameters is ")
-                              console.log(barChartParameters); // Once a bar is clicked, stopping looping around
-                              break;
-                    case 2012: drawBarChartFromObject( optionalInput);
-                              barFoundFlag = true; // Once a bar is clicked, stopping looping around
-                              break;                              
-                  };
-                }  
+                    switch( barPositionObject.year)
+                    {
+                      case 2011: drawBarChartFromObject( barChartParameters);
+                                barFoundFlag = true;
+                                break;
+                      case 2012: drawBarChartFromObject( optionalInput);
+                                barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                                break;                              
+                    };
+                  }  
 
-                if(positionObjectArray[counter].moduleCode != undefined)
-                {
-                  populateInfoDiv (positionObjectArray[counter].moduleCode );
-                  barFoundFlag = true; // Once a bar is clicked, stopping looping around
-                }  
+                  if(barPositionObject.moduleCode != undefined)
+                  {
 
-                
-                
+                    populateInfoDiv (barPositionObject.moduleCode );
+                    barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                  }
+
+                  // Code only runs if in compare mode
+                  if(barPositionObject.moduleCode != undefined && compareMode == true )
+                  {
+                      
+                    if( barsSelectedtoCompare < 2 && barSelectedArray.indexOf( barPositionObject) == -1)
+                    {  
+                      drawOneBar( canvasObject.getContext('2d'),
+                          barPositionObject.topLeft[0],
+                          barPositionObject.topLeft[1],
+                          50,
+                          barPositionObject.value,
+                          20,
+                          2,
+                          false);
+                      populateInfoDiv(barPositionObject.moduleCode );
+                      barsSelectedtoCompare++;
+                      barSelectedArray.push( barPositionObject);
+                      barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                    }
+                    else
+                    {    
+                      if(barSelectedArray.indexOf( barPositionObject) > -1 )
+                      {
+
+                        drawOneBar( canvasObject.getContext('2d'),
+                            barPositionObject.topLeft[0],
+                            barPositionObject.topLeft[1],
+                            50,
+                            barPositionObject.value,
+                            20,
+                            2,
+                            true);
+                        barsSelectedtoCompare--;
+                        barSelectedArray.splice( barSelectedArray.indexOf( barPositionObject), 1 );
+                      } 
+                    }// End of else    
+
+                  }
+
                } 
-
                if( barFoundFlag == true) break;
             }
           };
@@ -448,10 +511,47 @@ catch(PDOException $e)
       drawSummaryChart( moduleObjectArray, canvas);
     };
 
+    // Function that fires when the compare button is clicked
+    function compareButtonHandler()
+    {
+      var currentCanvasChartObject = currentCanvasChart;
+      
+      if( compareMode == false)
+      {
+        compareMode = true;
+        currentCanvasChartObject.fadedColour = true;
+      }
+      else
+      {
+        currentCanvasChartObject.fadedColour = false;
+        compareMode = false;
+      } 
+      drawBarChartFromObject( currentCanvasChartObject);
+
+    }
+
+    // Toggles collapsible content
+    function toggleOpen (elem) {
+              var el = elem.parentNode;
+              
+              if (el.className.indexOf("open") == -1) {
+                  el.className += " open";
+              } else {
+                  var pieces = el.className.split(" ");
+                  pieces.splice(pieces.indexOf("open"), 1);
+                  el.className = pieces.join(" ");
+              }
+              
+          }
 /**********************************************************************/
 console.log( "moduleObjectArray is:");
 console.log( moduleObjectArray);
   var canvas = document.getElementById('myCanvas');
+
+  var currentCanvasChart = null;
+  var compareMode = false;
+  var barsSelectedtoCompare = 0;
+  var barSelectedArray = [];
 
   var barWidth = 50;
   var canvasHeight = 300;

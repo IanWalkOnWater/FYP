@@ -26,12 +26,14 @@
                         barWidth,
                         dataValue,
                         spaceFromBottom,
-                        lengthMultiplier)
+                        lengthMultiplier,
+                        fadedColour)
      {
         
         // Check is spaceFromBottom is passed in
         if( spaceFromBottom == undefined) spaceFromBottom = 20;
         if( lengthMultiplier == undefined) lengthMultiplier = 1.0;
+        if( fadedColour == undefined) fadedColour = false;
 
         // if length multiplyer is 
         if( lengthMultiplier > 1)
@@ -44,10 +46,25 @@
             drawGreyBar(context, xposition, 100, spaceFromBottom, lengthMultiplier);
             context.beginPath();
             context.rect(xposition, yposition , barWidth, dataValue * lengthMultiplier); // X-pos, Y-Pos ( from top), width, height
-            context.fillStyle = '#ffca28';
+            context.fillStyle = '#FFCA28';
 
+            switch( true)
+            {
+              case ( dataValue >= 70): context.fillStyle = "#388e3c"; break;
+              case ( dataValue < 40): context.fillStyle = "#FF5722"; break;
+            }
+
+            if( fadedColour == true)
+            {
+              switch( true)
+              {
+                case ( dataValue >= 70): context.fillStyle = "#A5D6A7"; break;
+                case ( dataValue < 70 && dataValue >= 40): context.fillStyle = "#FFE082"; break;
+                case ( dataValue < 40): context.fillStyle = "#FF8A65"; break;
+              }
+
+            }
             
-            if( dataValue > 70) context.fillStyle = "#388e3c";
             context.fill();
             // Fill in the Border
             // context.lineWidth = 2;
@@ -92,7 +109,8 @@
                             barWidth, 
                             canvasHeight,
                             canvas,
-                            lengthMultiplier) 
+                            lengthMultiplier,
+                            fadedColour) 
     {     
       var dataValue = 0;
       var xposition = 0;
@@ -108,18 +126,19 @@
 
       for( var i =0; i< dataArray.length; i++)
       {
-        dataValue = dataArray[i];
+        dataValue = Number(dataArray[i]);
 
         xposition = xposition + (spaceBetweenBars);
         
         yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
         
-        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
+        drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier, fadedColour);
 
         topLeft = [ xposition, yposition ];
         topRight = [ xposition + barWidth, yposition  ];
         bottomLeft = [xposition , yposition + dataValue];
         bottomRight = [xposition + barWidth, yposition + dataValue];
+        value = dataValue;
       
         if( dataArray.length == dataLabelArray.length)
         {
@@ -140,7 +159,8 @@
           topRight : [ xposition + barWidth , yposition  ],
           bottomLeft : [xposition , yposition + dataValue],
           bottomRight : [xposition + barWidth, yposition + dataValue],
-          moduleCode: moduleCode,
+          moduleCode : moduleCode,
+          value : value
         });
       
       }; // End of For
