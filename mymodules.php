@@ -69,12 +69,13 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
   				"module_mark" => $row['Module_Mark'],
           "module_title" => $row['Module_Title'],
   				"student_id" => $row['Student_ID'],
+          "student_name" => $row['Student_Name'],
           "staff_id" => $row['Staff_ID'],
           "lecturer" => $row['Lecturer_Name'],
           "semester1" => $row['Semester1'],
           "semester2" => $row['Semester2'],
           "year" => $row['Year'],
-          
+
   			);
 
         $name = $row['Student_Name'];
@@ -140,8 +141,8 @@ catch(PDOException $e)
 <button type = "button" onclick = "compareButtonHandler()"> Compare </button>
 <canvas width = "10000" height= "300" id= "myCanvas"></canvas>
 <div id = "moduleInfoContainer">
-  <div id = "moduleInfoDiv">
-  <div id = "moduleInfoDiv2">  
+  <div id = "moduleInfoDiv"></div>
+  <div id = "moduleInfoDiv2"></div>  
 </div>
 
 
@@ -375,6 +376,64 @@ catch(PDOException $e)
           var lecturerName = moduleInfo[0].lecturerName;
           var moduleTitle = moduleInfo[0].moduleTitle;
           var moduleYear = moduleInfo[0].year;
+          var currentAssessment = "";
+          var htmlString = "";
+
+          htmlString += "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
+          
+          htmlString += "<p >" + moduleTitle + "</p>";
+          htmlString += "<p> Lecturer: " + lecturerName + "</p>";
+
+          //htmlString += "<div class='collapsable' data-height='400'>";
+          if( moduleInfo[0].criteriaID != undefined )
+          {  
+              
+              var numberOf = 1;
+              for( var i = 0; i< moduleInfo.length; i++)
+              { 
+                var datum = moduleInfo[i];
+                if( currentAssessment != datum.assessmentID )
+                {
+                  htmlString += "<p>" + datum.assessmentName + "</p>";    
+                  
+                }  
+                currentAssessment = datum.assessmentID;
+
+                if (numberOf == 1) htmlString += "<div class = 'infoRow' >";
+                htmlString += "<div class='collapsable' data-height='400'>";
+                htmlString += "<div onclick='toggleOpen(this);'>";           
+                
+                
+                htmlString += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
+                htmlString += "<p>" + datum.criteriaFeedback + "</p>";
+                htmlString += "</div>"; 
+                htmlString += "</div>";
+                if (numberOf == 4)
+                {
+                  numberOf = 0;
+                  htmlString += "</div  >";
+                } 
+                numberOf++;
+              }
+            
+          }
+          
+          moduleInfoDiv.innerHTML = htmlString;      
+    }// End of populateInfoDiv
+    /**************************************************************
+    * populate the info div2 with module and assessment info
+    ***************************************************************/
+    function populateInfoDiv2( moduleCodeInput )
+    {
+          var moduleInfoDiv1 = document.getElementById("moduleInfoDiv");
+          moduleInfoDiv1.style.maxWidth = "50%";
+          var moduleInfoDiv = document.getElementById("moduleInfoDiv2");
+          
+          var moduleInfo = getAssessmentInfo( moduleCodeInput );
+         
+          var lecturerName = moduleInfo[0].lecturerName;
+          var moduleTitle = moduleInfo[0].moduleTitle;
+          var moduleYear = moduleInfo[0].year;
           var htmlString = "";
 
           htmlString += "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
@@ -409,7 +468,7 @@ catch(PDOException $e)
           }
           
           moduleInfoDiv.innerHTML = htmlString;      
-    }// End of populateInfoDiv
+    }// End of populateInfoDiv2
 
     var globalClickFunction = null;
     // Give the canvas a click event listener
@@ -477,7 +536,13 @@ catch(PDOException $e)
                           20,
                           2,
                           false);
-                      populateInfoDiv(barPositionObject.moduleCode );
+
+                      // check the number of bars selected and populate the right div
+                      if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
+                      else
+                      {
+                        populateInfoDiv2(barPositionObject.moduleCode);
+                      }  
                       barsSelectedtoCompare++;
                       barSelectedArray.push( barPositionObject);
                       barFoundFlag = true; // Once a bar is clicked, stopping looping around
