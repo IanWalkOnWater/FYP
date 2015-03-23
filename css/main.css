@@ -26,7 +26,6 @@ body{
 }
 
 .collapsable{
-  				/*float: left;*/
   				display: inline-block;
                 width: 23%;
                 border: thin solid #000;
@@ -44,6 +43,18 @@ body{
 .collapsable.open {
     max-height: 150px;
 }
+.moduleInfoDiv{
+    max-width: 100%;
+    transition: all 0.5s ease;
+
+}
+.moduleInfoDiv.half-width{
+    max-width: 48%;
+    display: inline;
+    float: left;     
+}
+
+
 
 
 

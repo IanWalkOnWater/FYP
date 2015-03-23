@@ -140,9 +140,10 @@ catch(PDOException $e)
 <button type = "button" onclick = "resetButtonHandler()"> reset </button>
 <button type = "button" onclick = "compareButtonHandler()"> Compare </button>
 <canvas width = "10000" height= "300" id= "myCanvas"></canvas>
+<br/>
 <div id = "moduleInfoContainer">
-  <div id = "moduleInfoDiv"></div>
-  <div id = "moduleInfoDiv2"></div>  
+  <div id = "moduleInfoDiv" class = "moduleInfoDiv"></div>
+  <div id = "moduleInfoDiv2" class = "moduleInfoDiv"></div>  
 </div>
 
 
@@ -426,8 +427,10 @@ catch(PDOException $e)
     function populateInfoDiv2( moduleCodeInput )
     {
           var moduleInfoDiv1 = document.getElementById("moduleInfoDiv");
-          moduleInfoDiv1.style.maxWidth = "50%";
+          moduleInfoDiv1.className += " half-width";
+
           var moduleInfoDiv = document.getElementById("moduleInfoDiv2");
+          moduleInfoDiv.className += " half-width";
           
           var moduleInfo = getAssessmentInfo( moduleCodeInput );
          
@@ -489,9 +492,10 @@ catch(PDOException $e)
         globalClickFunction = function (event) {
             var mousePos = getMousePos(canvasObject, event);
             var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-            var barFoundFlag = false;
+            
             for( var counter = 0; counter < positionObjectArray.length; counter++ )
             {
+             
               if( checkBarIsClicked( [mousePos.x, mousePos.y ], positionObjectArray[counter]) == true )
                {
                   var barPositionObject = positionObjectArray[counter];
@@ -499,80 +503,97 @@ catch(PDOException $e)
                   console.log( barPositionObject);
                   console.log( counter + " was clicked;")
 
+                  // If a bar with Part (years) is clicked then go into this block
                   if(barPositionObject.year != undefined)
                   {
                     switch( barPositionObject.year)
                     {
                       case 2011: drawBarChartFromObject( barChartParameters);
-                                barFoundFlag = true;
                                 break;
                       case 2012: drawBarChartFromObject( optionalInput);
-                                barFoundFlag = true; // Once a bar is clicked, stopping looping around
                                 break;
                       case 2015: drawBarChartFromObject( optionalInput2);
-                                barFoundFlag = true; // Once a bar is clicked, stopping looping around
                                 break;                                        
                     };
                   }  
 
+                  // If a bar with module codes is clicked then go into this block
                   if(barPositionObject.moduleCode != undefined)
                   {
-
-                    populateInfoDiv (barPositionObject.moduleCode );
-                    barFoundFlag = true; // Once a bar is clicked, stopping looping around
+                    if(compareMode == true ) compareModeClickHandler( canvasObject, barPositionObject);// Code only runs if in compare mode
+                    else populateInfoDiv (barPositionObject.moduleCode );
                   }
-
-                  // Code only runs if in compare mode
-                  if(barPositionObject.moduleCode != undefined && compareMode == true )
-                  {
-                      
-                    if( barsSelectedtoCompare < 2 && barSelectedArray.indexOf( barPositionObject) == -1)
-                    {  
-                      drawOneBar( canvasObject.getContext('2d'),
-                          barPositionObject.topLeft[0],
-                          barPositionObject.topLeft[1],
-                          50,
-                          barPositionObject.value,
-                          20,
-                          2,
-                          false);
-
-                      // check the number of bars selected and populate the right div
-                      if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
-                      else
-                      {
-                        populateInfoDiv2(barPositionObject.moduleCode);
-                      }  
-                      barsSelectedtoCompare++;
-                      barSelectedArray.push( barPositionObject);
-                      barFoundFlag = true; // Once a bar is clicked, stopping looping around
-                    }
-                    else
-                    {    
-                      if(barSelectedArray.indexOf( barPositionObject) > -1 )
-                      {
-
-                        drawOneBar( canvasObject.getContext('2d'),
-                            barPositionObject.topLeft[0],
-                            barPositionObject.topLeft[1],
-                            50,
-                            barPositionObject.value,
-                            20,
-                            2,
-                            true);
-                        barsSelectedtoCompare--;
-                        barSelectedArray.splice( barSelectedArray.indexOf( barPositionObject), 1 );
-                      } 
-                    }// End of else    
-                  }
+                // break out of for loop if a match is found
+                break;       
                } 
-               if( barFoundFlag == true) break;
-            }
-          };
+                  
+            }// End of for loop
+          }; // End of globalClickFunction
+
          canvas.addEventListener("click", globalClickFunction,  false);
       }
     }// End of assignClickEvent
 
+    /**************************************************************
+    * code for compare mode
+    ***************************************************************/
+    function compareModeClickHandler( canvasObject, barPositionObject )
+    {
+      // If number of bars selected is less than 2 and the bar that is clicked is Not in barSelectedArray
+      if( barsSelectedtoCompare < 2 && barSelectedArray.indexOf( barPositionObject) == -1)
+      {  
+        // Fill in the bar with unfaded colour
+        drawOneBar( canvasObject.getContext('2d'),
+            barPositionObject.topLeft[0],
+            barPositionObject.topLeft[1],
+            50,
+            barPositionObject.value,
+            20,
+            2,
+            false);
+
+        // check the number of bars selected and populate the right div
+        if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
+        else
+        {
+          populateInfoDiv2(barPositionObject.moduleCode);
+        }  
+        barsSelectedtoCompare++;
+        barSelectedArray.push( barPositionObject);
+
+      }
+      else // If the bar is already in barSelectedArray then toggle this bar back to faded as it is not selected anymore
+      {    
+        if(barSelectedArray.indexOf( barPositionObject) > -1 )
+        {
+
+          drawOneBar( canvasObject.getContext('2d'),
+              barPositionObject.topLeft[0],
+              barPositionObject.topLeft[1],
+              50,
+              barPositionObject.value,
+              20,
+              2,
+              true);
+          barsSelectedtoCompare--;
+          barSelectedArray.splice( barSelectedArray.indexOf( barPositionObject), 1 );
+
+          // When first bar is unclicked then assign moduleinfodiv1 with the contents of moduleinfodiv2
+          var infoDiv1 = document.getElementById("moduleInfoDiv");
+          var infoDiv2 = document.getElementById("moduleInfoDiv2");
+          if(infoDiv1.innerHTML.indexOf( barPositionObject.moduleCode) > -1 )
+          {
+            infoDiv1.innerHTML = infoDiv2.innerHTML;
+            infoDiv2.innerHTML = "";
+            infoDiv1.className = "moduleInfoDiv";
+          }
+          
+        } 
+      }// End of else    
+    }      
+    /**************************************************************
+    * calculate the average score
+    ***************************************************************/
     function calculateAverage(inputArray)
     {
       var sum = 0;
