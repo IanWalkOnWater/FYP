@@ -12,7 +12,7 @@
 <body>
 
 <div class="page-header" id="page-header"> 
-  <img src="http://www.lboro.ac.uk/media/wwwlboroacuk/internal/styleassets/img/LU_logo.png">
+  <img src="http://www.lboro.ac.uk/media/wwwlboroacuk/internal/styleassets/img/LU_logo.png" alt="LU Logo">
   Home &nbsp; My Modules &nbsp; 
 </div>
 
@@ -35,7 +35,7 @@ try {
 	    $conn = new PDO("mysql:host=$servername;dbname=coidckw", $username, $password);
 	    // set the PDO error mode to exception
 	    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	    echo "Connected successfully <br/><br/>"; 
+	    
 
 	    // Build the SQL
 	    //$sql = "SELECT * FROM coidckw.Student_Module";
@@ -57,7 +57,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
 	   
 	    // use exec() because no results are returned
 	    //$conn->exec($sql);
-	    //echo "Database created successfully<br>";
+	    
 	    $jsonToEncode = array();
 	    $tempvar = array();
 
@@ -75,6 +75,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
           "semester1" => $row['Semester1'],
           "semester2" => $row['Semester2'],
           "year" => $row['Year'],
+          "category" => $row['Category'],
 
   			);
 
@@ -136,9 +137,12 @@ catch(PDOException $e)
 <br/>
 <br/>
 <br/>
-<button type = "button" onclick = "drawAllModules()"> Show all modules </button>
-<button type = "button" onclick = "resetButtonHandler()"> reset </button>
+<!--<button type = "button" onclick = "drawAllModules()"> Show all modules </button> -->
+<button type = "button" onclick = "resetButtonHandler()"> Up a level  </button>
 <button type = "button" onclick = "compareButtonHandler()"> Compare </button>
+<select id = "filterSelector" onchange = "filterBarChart(this)">
+  <option>All</option>
+</select>
 <canvas width = "10000" height= "300" id= "myCanvas"></canvas>
 <br/>
 <div id = "moduleInfoContainer">
@@ -156,6 +160,12 @@ catch(PDOException $e)
   var moduleObjectArray = [];
   var globalTestvara = [];
   var globalBarPositionArray = [];
+  var globalTheoryArray = [];
+  var globalProgrammingArray = [];
+  var globalMathematicsArray = [];
+
+  var selectElement = document.getElementById("filterSelector");
+  var categoryArray = [];
 
   var objectArray = []; // Store each bar as an object and put it into this array
   for(var i=0; i<abc.length; i++)
@@ -173,9 +183,27 @@ catch(PDOException $e)
             semester2: abc[i].semester2,
             moduleMark: abc[i].module_mark,
             year: abc[i].year,
+            category: abc[i].category,
           });
+
+    switch( abc[i].category )
+    {
+      case "Theory": globalTheoryArray.push( moduleObjectArray[i] ); break;
+      case "Programming": globalProgrammingArray.push( moduleObjectArray[i] ); break;
+      case "Mathematics": globalMathematicsArray.push( moduleObjectArray[i] ); break;
+
+
+    }
+
+    // Check if the category is in the category array, if not then add it to dropdown list
+    if( categoryArray.indexOf( abc[i].category) == -1)
+    {  
+      var optionElement = document.createElement("option");
+      optionElement.textContent = abc[i].category;
+      selectElement.appendChild( optionElement);
+      categoryArray.push( abc[i].category);
+    };  
   }
-    
 
       // Helper function that takes 1 parameter instead of 5
      function drawBarChartFromObject ( inputObject)
@@ -384,6 +412,7 @@ catch(PDOException $e)
           
           htmlString += "<p >" + moduleTitle + "</p>";
           htmlString += "<p> Lecturer: " + lecturerName + "</p>";
+          htmlString += "<p> Class Average: 69%" +  "</p>";
 
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
@@ -474,6 +503,7 @@ catch(PDOException $e)
     }// End of populateInfoDiv2
 
     var globalClickFunction = null;
+    var globalHoverFunction = null;
     // Give the canvas a click event listener
     function assignClickEvent( canvasObject, positionObjectArray, barChartParameters, optionalInput, optionalInput2 )
     {
@@ -509,11 +539,11 @@ catch(PDOException $e)
                     switch( barPositionObject.year)
                     {
                       case 2011: drawBarChartFromObject( barChartParameters);
-                                break;
+                                return;
                       case 2012: drawBarChartFromObject( optionalInput);
-                                break;
+                                return;
                       case 2015: drawBarChartFromObject( optionalInput2);
-                                break;                                        
+                                return;                                        
                     };
                   }  
 
@@ -531,6 +561,8 @@ catch(PDOException $e)
           }; // End of globalClickFunction
 
          canvas.addEventListener("click", globalClickFunction,  false);
+         console.log( "current canvas chart is:");
+         console.log( currentCanvasChart);
       }
     }// End of assignClickEvent
 
@@ -613,7 +645,62 @@ catch(PDOException $e)
       return result;
     }// End of calculateAverage
 
+    /**************************************************************
+    * code for Filtering
+    ***************************************************************/
+    function filterBarChart(filterSelectorElement)
+    {
+      filterResetArray = currentCanvasChart;
+      var allCurrentModuleArray = currentCanvasChart.dataLabelArray;
+      
+      // Get the filter that the user has selected
+      var filterSelected = filterSelectorElement.options[ filterSelectorElement.selectedIndex].text;
+      // If All is picked then just return and exit the function
+      if( filterSelected == "All") return;
+      var moduleObjectArray = null;
+      var arrayToCompare = [];
 
+      var tempArray = [];
+      var tempsArray = [];
+
+     
+
+      switch( filterSelected)
+      {
+        case "Theory": moduleObjectArray = globalTheoryArray; break;
+        case "Programming": moduleObjectArray = globalProgrammingArray; break;
+        case "Mathematics": moduleObjectArray = globalMathematicsArray; break;
+      }
+
+      for( var i = 0; i< moduleObjectArray.length; i++)
+      {
+        arrayToCompare.push( moduleObjectArray[i].moduleCode);
+      }  
+      
+
+      for( var i = 0; i< allCurrentModuleArray.length; i++)
+      {
+        if( arrayToCompare.indexOf( allCurrentModuleArray[i] ) > -1)
+        {  
+          tempArray.push( allCurrentModuleArray[i]);
+          tempsArray.push( currentCanvasChart.dataArray[i]);
+        }  
+
+      }  
+      
+
+     var returnvalue =  drawBarChart ( tempsArray, 
+                            tempArray, 
+                            currentCanvasChart.barWidth, 
+                            currentCanvasChart.canvasHeight,
+                            canvas,
+                            currentCanvasChart.lengthMultiplier,
+                            false);
+     console.log( returnvalue);
+
+     assignClickEvent( canvas, returnvalue )
+
+    }
       
     // Draws a bar chart with every module
     function drawAllModules()
@@ -678,6 +765,8 @@ console.log( moduleObjectArray);
   var compareMode = false;
   var barsSelectedtoCompare = 0;
   var barSelectedArray = [];
+
+  var filterResetOjbect = null; // This array contains the bar chart before a filter was applied
 
   var barWidth = 50;
   var canvasHeight = 300;
