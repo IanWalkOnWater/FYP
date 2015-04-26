@@ -12,27 +12,45 @@
 <body>
 
 <div class="page-header" id="page-header"> 
-  <img src="http://www.lboro.ac.uk/media/wwwlboroacuk/internal/styleassets/img/LU_logo.png" alt="LU Logo">
+  <img src="images/logo.png" alt="LU Logo">
   Home &nbsp; My Modules &nbsp; 
 </div>
 
 <?php
 
 // Get all the data from the ajax page
-
+session_start();
 //require_once('MDB2.php');
 
 
+// Check the user is logged in
+if(isset($_SESSION[ 'loggedIn']) && isset($_SESSION[ 'usernameInput']) )
+{
+  if( $_SESSION[ 'loggedIn'] == true)
+  {
+    $usernameInput = $_SESSION[ 'usernameInput'];
+  }  
+  else//empty($user_name)
+  {
+    header('location: index.php');
+  }
+
+}
+// User is not logged in so send them back to the login page
+else
+{
+  header('location: index.php');
+}
 
 $host='co-project.lboro.ac.uk';
 $username='coidckw';
 $dbName=' coidckw';
 $password='ekd93pqk';
 //$servername = "localhost";
-$servername = $host;
+
 
 try {
-	    $conn = new PDO("mysql:host=$servername;dbname=coidckw", $username, $password);
+	    $conn = new PDO("mysql:host=$host;dbname=coidckw", $username, $password);
 	    // set the PDO error mode to exception
 	    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	    
@@ -41,7 +59,7 @@ try {
 	    //$sql = "SELECT * FROM coidckw.Student_Module";
 $sql = "SELECT Student_Module.*, Student.*, Module.*, Lecturer.* FROM Student_Module JOIN Student ON ";
 $sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code ";
-$sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
+$sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.Username = '" . $usernameInput . "'";
 
 // UPDATE Module
 // SET Staff_ID = 
@@ -83,11 +101,12 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID ";
         $jsonToEncode[] = $tempvar;
 		  }
 
-    $assessmentSQL = "SELECT Module.*, Assessment.*, Mark_Criteria.*, Lecturer.*, Student_Mark_Criteria.* FROM ";
+    $assessmentSQL = "SELECT Module.*, Assessment.*, Mark_Criteria.*, Lecturer.*, Student_Mark_Criteria.* , Student.* FROM ";
     $assessmentSQL .= "Module JOIN Assessment ON Module.Module_Code = Assessment.Module_Code JOIN ";
     $assessmentSQL .= "Mark_Criteria ON Assessment.Assessment_ID = Mark_Criteria.Assessment_ID JOIN ";
     $assessmentSQL .= "Lecturer ON Lecturer.Staff_ID = Module.Staff_ID JOIN "; 
-    $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID";
+    $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID ";
+    $assessmentSQL .= " JOIN Student ON Student.Student_ID = Student_Mark_Criteria.Student_ID WHERE Student.Username = '" . $usernameInput . "'";
 
     echo $assessmentSQL;
      echo "<br/>";
@@ -143,6 +162,13 @@ catch(PDOException $e)
 <select id = "filterSelector" onchange = "filterBarChart(this)">
   <option>All</option>
 </select>
+
+<label for = "sortSelector"> Sort By:</label><select id = "sortSelector" onchange = "sortBarChart(this)">
+  <option>Module Code</option>
+  <option>Score (High to Low)</option>
+  <option>Score (Low to High) </option>
+</select>
+
 <canvas width = "10000" height= "300" id= "myCanvas"></canvas>
 <br/>
 <div id = "moduleInfoContainer">
@@ -304,6 +330,8 @@ catch(PDOException $e)
       context.fillText( "Part A", xposition, textPosition);
       // Do the same for 2012 data
       yposition = (canvasHeight - Number(averageScore2012) - spaceFromBottom);
+      console.log( "actual y position should be " + yposition);
+      // Comment it out for now yposition = getNewYCoordinate( yposition, lengthMultiplier, spaceFromBottom, canvasHeight );
       xposition = xposition + spaceBetweenBars;
       dataValue = Number( averageScore2012.toFixed(1) );
       
@@ -321,6 +349,7 @@ catch(PDOException $e)
       }
       // Do same again for 2015 data
       yposition = (canvasHeight - Number(averageScore2015) - spaceFromBottom);
+      // Comment it out for now yposition = getNewYCoordinate( yposition, lengthMultiplier, spaceFromBottom, canvasHeight );
       xposition = xposition + spaceBetweenBars;
       dataValue = Number( averageScore2015.toFixed(1) ); // Trim the number to 1d.p
       
@@ -522,7 +551,7 @@ catch(PDOException $e)
         globalClickFunction = function (event) {
             var mousePos = getMousePos(canvasObject, event);
             var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-            
+            console.log( message);
             for( var counter = 0; counter < positionObjectArray.length; counter++ )
             {
              
@@ -677,7 +706,7 @@ catch(PDOException $e)
         arrayToCompare.push( moduleObjectArray[i].moduleCode);
       }  
       
-
+      // Need to neaten this up
       for( var i = 0; i< allCurrentModuleArray.length; i++)
       {
         if( arrayToCompare.indexOf( allCurrentModuleArray[i] ) > -1)
@@ -701,7 +730,72 @@ catch(PDOException $e)
      assignClickEvent( canvas, returnvalue )
 
     }
-      
+    /**************************************************************
+    * code for Sorting
+    ***************************************************************/  
+    function sortBarChart(sortSelectorElement)
+    {
+      //filterResetArray = currentCanvasChart;
+      var allCurrentModuleArray = currentCanvasChart.dataLabelArray;
+
+      // Get the Sort type that the user has selected
+      var sortSelected = sortSelectorElement.options[ sortSelectorElement.selectedIndex].text;
+
+      var moduleCodeArray = [];
+      var moduleScoreArray = [];
+      moduleScoreArray = reverseArray( currentCanvasChart.dataArray );
+      moduleCodeArray = reverseArray( currentCanvasChart.dataLabelArray );
+     
+
+      var returnvalue =  drawBarChart ( moduleScoreArray, 
+                            moduleCodeArray, 
+                            currentCanvasChart.barWidth, 
+                            currentCanvasChart.canvasHeight,
+                            canvas,
+                            currentCanvasChart.lengthMultiplier,
+                            false);
+      assignClickEvent( canvas, returnvalue );
+    }
+
+    /**************************************************************
+    * reverse array
+    ***************************************************************/
+    function reverseArray( inputArray )
+    {
+
+      var results = [];
+      var lastIndex = inputArray.length - 1; // Get the last index number of inputArray
+      for( i = lastIndex; i >= 0; i--)
+      {
+        results.push( inputArray[i]);
+      } 
+
+      return results;   
+    }
+    /**************************************************************
+    * Sort array
+    ***************************************************************/
+    function sortArray( inputArray )
+    {
+      var results = [];
+      var tempVariable = -1;
+
+      for( i=0; i< inputArray.length; i++)
+      {
+
+        var a = Number( inputArray[i] );
+        var b = Number( inputArray[i + 1] );
+        tempVariable = a;
+        if( a > b )
+        {
+          results[ i] = b;
+          //results[]
+        }  
+
+      }  
+
+
+    }
     // Draws a bar chart with every module
     function drawAllModules()
     {
@@ -727,15 +821,22 @@ catch(PDOException $e)
     {
       var currentCanvasChartObject = currentCanvasChart;
       
-      if( compareMode == false)
-      {
+      if( compareMode == false) 
+      { // Turn on Compare Mode
         compareMode = true;
         currentCanvasChartObject.fadedColour = true;
       }
       else
-      {
+      { // Turn off Compare Mode
         currentCanvasChartObject.fadedColour = false;
         compareMode = false;
+        var infoDiv2 = document.getElementById("moduleInfoDiv2");
+        infoDiv2.innerHTML = "";
+
+        // Set class name of info div 1 back to default
+        var infoDiv1 = document.getElementById("moduleInfoDiv");
+        infoDiv1.className = "moduleInfoDiv";
+
       } 
       drawBarChartFromObject( currentCanvasChartObject);
     }
