@@ -37,13 +37,15 @@
                     dataValue,
                     spaceFromBottom,
                     lengthMultiplier,
-                    fadedColour)
+                    fadedColour,
+                    addBorder)
   {
     
     // Check is spaceFromBottom is passed in
     if( spaceFromBottom == undefined) spaceFromBottom = 20;
     if( lengthMultiplier == undefined) lengthMultiplier = 1.0;
     if( fadedColour == undefined) fadedColour = false;
+    if( addBorder == undefined) addBorder = false;
 
     // if length multiplyer is 
     if( lengthMultiplier > 1)
@@ -77,27 +79,33 @@
         
         context.fill();
 
-        if( addBorder == true)
+        if( addBorder == true) // If addBorder is true then draw a border around the bar
         {  
-        // Fill in the Border
-          context.lineWidth = 1;
-         context.strokeStyle = 'black';
-          context.stroke();
+        // Add a thin black border around the bar
+        context.lineWidth = 0.75;
+        context.strokeStyle = 'black'; 
         }
-       
+        else
+        {
+          // This bit of code is to remove any borders already on the bar. This code will cover up the old border with a thicker border
+          context.lineWidth = 2;
+          context.strokeStyle = context.fillStyle;
+        }
+
+        context.stroke(); // Draw the border
         
+        // Add the data label below the bar
         context.fillStyle = "black";
         context.font = 'italic 10pt Calibri';
         context.fillText( dataValue, labelPosition, yposition - (spaceFromBottom/2));
         context.closePath();
       }
 
+      // Catch all errors and just log it
       catch( error)
       {
         console.log( "Failed to draw one bar " + error);
-      }
-
-      
+      }      
   }// End of drawOneBar
 
   function drawGreyBar (context, xposition, Value, spaceFromBottom, lengthMultiplier)
@@ -114,6 +122,10 @@
   context.fillStyle = '#E0E0E0';
 
   context.fill();
+
+  context.lineWidth = 2;
+  context.strokeStyle = context.fillStyle;
+  context.stroke();
 
   context.closePath();
   }// End of draw grey bar

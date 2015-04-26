@@ -603,6 +603,9 @@ catch(PDOException $e)
       // If number of bars selected is less than 2 and the bar that is clicked is Not in barSelectedArray
       if( barsSelectedtoCompare < 2 && barSelectedArray.indexOf( barPositionObject) == -1)
       {  
+
+        //If the bar is cliked then run this section of code
+
         // Fill in the bar with unfaded colour
         drawOneBar( canvasObject.getContext('2d'),
             barPositionObject.topLeft[0],
@@ -611,7 +614,8 @@ catch(PDOException $e)
             barPositionObject.value,
             20,
             2,
-            false);
+            false,
+            true); // Add a border
 
         // check the number of bars selected and populate the right div
         if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
