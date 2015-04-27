@@ -22,21 +22,24 @@
 
     session_start();
 
-    // if( isset( $_SESSION['wrongLogin']) )
-    //     //echo '<p style="color:red; font-weight:bold;">Please enter a valid Username</p>';
-    //     echo '<div>yes</div>';
-    // else
-    // {    
-    //     echo '<div>No</div>';
-    //     $_SESSION['wrongLogin'] = false;
-    // }
-
 
     if(isset($_GET['failed'])) 
     { 
         if($_GET['failed'] == 1) 
         { 
             echo $_GET['error']; 
+        } 
+    }
+
+    // Code for to log the user out
+     if(isset($_GET['logout'])) 
+    { 
+        if($_GET['logout'] == 1) 
+        { 
+            $_SESSION[ 'loggedIn'] = false;
+            session_destroy(); // Then destroy the session
+            echo "Logout successful";
+            
         } 
     }
 

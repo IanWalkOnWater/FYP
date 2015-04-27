@@ -22,7 +22,8 @@
                     spaceFromBottom,
                     lengthMultiplier,
                     fadedColour,
-                    addBorder)
+                    addBorder,
+                    classAverage)
   {
     
     // Check is spaceFromBottom is passed in
@@ -30,6 +31,7 @@
     if( lengthMultiplier == undefined) lengthMultiplier = 1.0;
     if( fadedColour == undefined) fadedColour = false;
     if( addBorder == undefined) addBorder = false;
+    if( classAverage == undefined) classAverage = -1;
 
     // if length multiplyer is greater than 1 then get the new y coordinate
     if( lengthMultiplier > 1)
@@ -81,6 +83,15 @@
         context.font = 'italic 10pt Calibri';
         context.fillText( dataValue, labelPosition, yposition - (spaceFromBottom/2));
         context.closePath();
+console.log( "classAverage is");
+console.log( classAverage);
+        if( classAverage > -1)
+        {  
+         
+          //var tempa = context.canvas.height - (dataValue * lengthMultiplier) - (spaceFromBottom - 5 );
+          ypos = yposition + (dataValue - classAverage );
+          addClassAverage( context, xposition, ypos, barWidth);
+        }
       }
 
       // Catch all errors and just log it
@@ -89,7 +100,9 @@
         console.log( "Failed to draw one bar " + error);
       }      
   }// End of drawOneBar
-
+  /**************************************************************
+  * Draw one gey bar
+  ***************************************************************/
   function drawGreyBar (context, xposition, Value, spaceFromBottom, lengthMultiplier)
   {  
 
@@ -111,16 +124,19 @@
 
   context.closePath();
   }// End of draw grey bar
-
-     // Main function that draws the bar charts
+  /**************************************************************
+  * Main function that draws the bar charts
+  ***************************************************************/
   function drawBarChart ( dataArray, 
                             dataLabelArray, 
                             barWidth, 
                             canvasHeight,
                             canvas,
                             lengthMultiplier,
-                            fadedColour) 
-  {     
+                            fadedColour,
+                            classAverageArray) 
+  { 
+    if( classAverageArray == undefined) classAverageArray = [];    
     var dataValue = 0;
     var xposition = 0;
     var spaceBetweenBars = 70;
@@ -128,7 +144,11 @@
     var heightMultiplyer = 1.5;
     var spaceFromBottom = 20; // moves all the bars up by x pixels
     var objectArray = [];
+    var classAverage = -1;
+    var addBorder = false;
 
+    console.log( "classAverageArray");
+    console.log( classAverageArray);
     
     canvas.height = canvasHeight;
     var context = canvas.getContext('2d');
@@ -140,9 +160,16 @@
       xposition = xposition + (spaceBetweenBars);
       
       yposition = (canvasHeight - Number(dataArray[i]) - spaceFromBottom) ;
-      
-      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier, fadedColour);
 
+      if( classAverageArray.length > 0)
+      {  
+        classAverage = classAverageArray[i];
+        
+      }
+      
+      drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier, fadedColour,addBorder, classAverage);
+
+      
       topLeft = [ xposition, yposition ];
       topRight = [ xposition + barWidth, yposition  ];
       bottomLeft = [xposition , yposition + dataValue];
@@ -177,6 +204,20 @@
     return objectArray;
 
   } // End of function drawBarChart
+  /**************************************************************
+  * Draw class average
+  ***************************************************************/
+  function addClassAverage( context,
+                            xposition,
+                            yposition,
+                            barWidth)
+  {
+    context.beginPath();
+    context.rect(xposition, yposition , barWidth, 1); // X-pos, Y-Pos ( from top), width, height
+    context.fillStyle = '#000000'; // color black
+    context.fill();
+    context.closePath;
+  }
 
   function checkX( xCoordinate, leftCoordinate, rightCoordinate)
   {

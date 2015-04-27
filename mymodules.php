@@ -13,16 +13,13 @@
 
 <div class="page-header" id="page-header"> 
   <img src="images/LULogo.png" alt="LU Logo">
-  <p class="title-text">My Feedback</p>
+  <p class="title-text">My Feedback</p><br/>
+  <p class="logout-text"> <a href="index.php?logout=1"> Logout </a></p>
 </div>
 
 <?php
 
-// Get all the data from the ajax page
 session_start();
-//require_once('MDB2.php');
-
-
 // Check the user is logged in
 if(isset($_SESSION[ 'loggedIn']) && isset($_SESSION[ 'usernameInput']) )
 {
@@ -44,38 +41,23 @@ else
 
 $host='co-project.lboro.ac.uk';
 $username='coidckw';
-$dbName=' coidckw';
+$dbName='coidckw';
 $password='ekd93pqk';
 //$servername = "localhost";
 
 
 try {
-	    $conn = new PDO("mysql:host=$host;dbname=coidckw", $username, $password);
+	    $conn = new PDO("mysql:host=$host;dbname=$dbName", $username, $password);
 	    // set the PDO error mode to exception
 	    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	    
 
 	    // Build the SQL
 	    //$sql = "SELECT * FROM coidckw.Student_Module";
-$sql = "SELECT Student_Module.*, Student.*, Module.*, Lecturer.* FROM Student_Module JOIN Student ON ";
-$sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code ";
-$sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.Username = '" . $usernameInput . "'";
+      $sql = "SELECT Student_Module.*, Student.*, Module.*, Lecturer.* FROM Student_Module JOIN Student ON ";
+      $sql .= "Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code ";
+      $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.Username = '" . $usernameInput . "'";
 
-// UPDATE Module
-// SET Staff_ID = 
-// WHERE Module_Code='';
-// SELECT * FROM Module
-
-// SELECT * FROM Module Join  Lecturer ON Module.Staff_ID = Lecturer.Staff_ID
-
-//SELECT Student_Module.*, Student.*, Module.* FROM Student_Module JOIN Student ON Student.Student_ID = Student_Module.Student_ID JOIN Module ON Module.Module_Code = Student_Module.Module_Code 
-
-// Join Assessment, Mark Critera and Module Table together 
-//SELECT Module.*, Assessment.*, Mark_Criteria.* FROM Module JOIN Assessment ON Module.Module_Code = Assessment.Module_Code JOIN Mark_Criteria ON Assessment.Assessment_ID = Mark_Criteria.Assessment_ID 
-	   
-	    // use exec() because no results are returned
-	    //$conn->exec($sql);
-	    
 	    $jsonToEncode = array();
 	    $tempvar = array();
 
@@ -94,6 +76,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
           "semester2" => $row['Semester2'],
           "year" => $row['Year'],
           "category" => $row['Category'],
+          "class_average" => $row['Class_Average']
 
   			);
 
@@ -109,7 +92,7 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
     $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID ";
     $assessmentSQL .= " JOIN Student ON Student.Student_ID = Student_Mark_Criteria.Student_ID WHERE Student.Username = '" . $usernameInput . "'";
 
-     echo "<br/>";
+     
 	 
     foreach ($conn->query($assessmentSQL) as $row) 
       {
@@ -128,7 +111,8 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
           "maxMark" => $row['Max_Mark'],
           "year" => $row['Year'],
           "studentMark" => $row['Student_Mark'],
-          "criteriaFeedback" => $row[ 'Criteria_Feedback']
+          "criteriaFeedback" => $row[ 'Criteria_Feedback'],
+          "classAverage" => $row['Class_Average']
           
         );
 
@@ -218,6 +202,7 @@ catch(PDOException $e)
             moduleMark: abc[i].module_mark,
             year: abc[i].year,
             category: abc[i].category,
+            classAverage: abc[i].class_average
           });
 
     switch( abc[i].category )
@@ -249,7 +234,8 @@ catch(PDOException $e)
                     inputObject.canvasHeight,
                     inputObject.canvas,
                     inputObject.lengthMultiplier,
-                    inputObject.fadedColour
+                    inputObject.fadedColour,
+                    inputObject.classAverageArray
                   );
        currentCanvasChart = inputObject;
       
@@ -295,6 +281,10 @@ catch(PDOException $e)
       var scorearray2015 = [];   
       var context = canvas.getContext('2d');
 
+      var arrayOfAverages2011 = [];
+      var arrayOfAverages2012 = [];
+      var arrayOfAverages2015 = [];
+
       for( var i = 0; i< moduleObjectArray.length; i++)
       {
 
@@ -302,14 +292,18 @@ catch(PDOException $e)
         switch( moduleYear)
           {
             case "2011": tempscorearray2011.push(moduleObjectArray[i]);
+                         arrayOfAverages2011.push( moduleObjectArray[i].classAverage);
                       break;           
             case "2012": tempscorearray2012.push(moduleObjectArray[i]);
+                        arrayOfAverages2012.push( moduleObjectArray[i].classAverage);
                       break;
             case "2015": scorearray2015.push(moduleObjectArray[i]);
+                        arrayOfAverages2015.push( moduleObjectArray[i].classAverage);
+                        console.log( "arrayOfAverages2015");
+                        console.log( arrayOfAverages2015);
                       break;                    
             default: console.log( "error in switch with: " + moduleObjectArray[i]);
           }
-
       }  
      var averageScore2011 = calculateAverage( tempscorearray2011);
      var averageScore2012 = calculateAverage( tempscorearray2012);
@@ -377,6 +371,7 @@ catch(PDOException $e)
       var arrayOfScores2011 = [];
       var arrayOfScores2012 = [];
       var arrayOfScores2015 = [];
+
       var arrayofModuleCodes2011 =[];
       var arrayofModuleCodes2012 = [];
       var arrayofModuleCodes2015 = [];
@@ -393,7 +388,8 @@ catch(PDOException $e)
         barWidth: barWidth,
         canvasHeight: canvasHeight,
         canvas: canvas,
-        lengthMultiplier: 2
+        lengthMultiplier: 2,
+        classAverageArray: arrayOfAverages2011
       }
       // Do the same for 2012
       for( var a = 0; a < tempscorearray2012.length; a++)
@@ -408,7 +404,8 @@ catch(PDOException $e)
         barWidth: barWidth,
         canvasHeight: canvasHeight,
         canvas: canvas,
-        lengthMultiplier: 2
+        lengthMultiplier: 2,
+        classAverageArray: arrayOfAverages2012
       }
       // Do same again for 2015 data
       for( var a = 0; a < scorearray2015.length; a++)
@@ -423,7 +420,8 @@ catch(PDOException $e)
         barWidth: barWidth,
         canvasHeight: canvasHeight,
         canvas: canvas,
-        lengthMultiplier: 2
+        lengthMultiplier: 2,
+        classAverageArray: arrayOfAverages2015
       }
 
       var newarray = [ temparray2011, temparray2012, temparray2015];
@@ -442,6 +440,7 @@ catch(PDOException $e)
           var lecturerName = moduleInfo[0].lecturerName;
           var moduleTitle = moduleInfo[0].moduleTitle;
           var moduleYear = moduleInfo[0].year;
+          var classAverage = moduleInfo[0].classAverage;
           var currentAssessment = "";
           var htmlString = "";
 
@@ -449,7 +448,7 @@ catch(PDOException $e)
           
           htmlString += "<p >" + moduleTitle + "</p>";
           htmlString += "<p> Lecturer: " + lecturerName + "</p>";
-          htmlString += "<p> Class Average: 69%" +  "</p>";
+          htmlString += "<p> Class Average: " + classAverage + "%</p>";
 
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
@@ -514,13 +513,14 @@ catch(PDOException $e)
           var lecturerName = moduleInfo[0].lecturerName;
           var moduleTitle = moduleInfo[0].moduleTitle;
           var moduleYear = moduleInfo[0].year;
+          var classAverage = moduleInfo[0].classAverage;
           var htmlString = "";
 
           htmlString += "<p>" + moduleYear +" " +  moduleCodeInput + "</p>";
           
           htmlString += "<p >" + moduleTitle + "</p>";
           htmlString += "<p> Lecturer: " + lecturerName + "</p>";
-          htmlString += "<p> Class Average: 69%" +  "</p>";
+          htmlString += "<p> Class Average: " + classAverage + "%</p>";
 
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
@@ -862,7 +862,7 @@ catch(PDOException $e)
 
       htmlString = "";
       htmlString += "<img src='http://co-project.lboro.ac.uk/users/coidckw/Electronic%20Marking%20System/images/logo.png' alt='LU Logo'><br/>"
-      htmlString += "<div>Dear " + globalStudentName + ", below is your requested feedback</div>";
+      htmlString += "<div>Dear " + globalStudentName + ", <br/> Below is your requested feedback</div>";
       htmlString += "<table style='font-family:Arial;' border='1'>";
 
       htmlString += "<tr><td> Module Code</td><td>Assessment</td><td>Critera</td><td>Mark</td><td>Comment</td></tr>";
