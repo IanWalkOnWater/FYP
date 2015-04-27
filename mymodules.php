@@ -175,7 +175,7 @@ catch(PDOException $e)
   </div> 
 </div>  
 
-<div id="a123"><canvas width = "10000" height= "300" id= "mainCanvas"></canvas></div>
+<div id="canvasContainer"><canvas width = "10000" height= "300" id= "mainCanvas"></canvas></div>
 <br/>
 <div id = "moduleInfoContainer">
   <div id = "moduleInfoDiv" class = "moduleInfoDiv"></div>
@@ -454,18 +454,22 @@ catch(PDOException $e)
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
           {  
+              // Create the a table of the feedback data so it can be emailed            
               var tableOfData = createTable( moduleInfo);
-              console.log( moduleInfo);
+              // Create a form with hidden input fields so it can be posted to sendmail.php
               htmlString += '<form name="emailForm" method="post" action="sendmail.php">';
               htmlString += '<input class="hidden" name="emailAddress" type="text" id="emailAddress" value="' + globalEmailAddress + '">';
               htmlString += '<input class="hidden" name="moduleCode" type="text" id="moduleCode" value="' + moduleInfo[0].moduleCode + '">';
               htmlString += '<input class="hidden" name="dataString" type="text" id="dataString" value="' + tableOfData + '">';
-              htmlString += '<br/> <button type="submit"> Email Me</button>      <br/></form>';
+              htmlString += ' <button class="control-button" type="submit"><img src="images/email.png"><br/>';
+              htmlString += ' Email me the feedback</button>      <br/></form>'; 
               
+              // Display all the module feedback as HTML on the website
               var numberOf = 1;
               for( var i = 0; i< moduleInfo.length; i++)
               { 
                 var datum = moduleInfo[i];
+                // Add the assessment name only if this current peice of assessment is different to the previous one
                 if( currentAssessment != datum.assessmentID )
                 {
                   htmlString += "<p>" + datum.assessmentName + "</p>";    
@@ -506,7 +510,7 @@ catch(PDOException $e)
           moduleInfoDiv.className += " half-width";
           
           var moduleInfo = getAssessmentInfo( moduleCodeInput );
-         
+          var currentAssessment = "";
           var lecturerName = moduleInfo[0].lecturerName;
           var moduleTitle = moduleInfo[0].moduleTitle;
           var moduleYear = moduleInfo[0].year;
@@ -516,19 +520,37 @@ catch(PDOException $e)
           
           htmlString += "<p >" + moduleTitle + "</p>";
           htmlString += "<p> Lecturer: " + lecturerName + "</p>";
+          htmlString += "<p> Class Average: 69%" +  "</p>";
 
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
           {  
-              
+              // Create the a table of the feedback data so it can be emailed            
+              var tableOfData = createTable( moduleInfo);
+              // Create a form with hidden input fields so it can be posted to sendmail.php
+              htmlString += '<form name="emailForm" method="post" action="sendmail.php">';
+              htmlString += '<input class="hidden" name="emailAddress" type="text" id="emailAddress" value="' + globalEmailAddress + '">';
+              htmlString += '<input class="hidden" name="moduleCode" type="text" id="moduleCode" value="' + moduleInfo[0].moduleCode + '">';
+              htmlString += '<button class="control-button" type="submit"><img src="images/email.png"><br/>';
+              htmlString += ' Email me the feedback</button>      <br/></form>';  
+
               var numberOf = 1;
               for( var i = 0; i< moduleInfo.length; i++)
               { 
+                var datum = moduleInfo[i]; // Get the current piece of module info
+
+                // Add the assessment name only if this current peice of assessment is different to the previous one
+                if( currentAssessment != datum.assessmentID )
+                {
+                  htmlString += "<p>" + datum.assessmentName + "</p>";    
+                  
+                }  
+                currentAssessment = datum.assessmentID;
 
                 if (numberOf == 1) htmlString += "<div class = 'infoRow' >";
                 htmlString += "<div class='collapsable' data-height='400'>";
                 htmlString += "<div onclick='toggleOpen(this);'>";           
-                var datum = moduleInfo[i];
+                
                 htmlString += "<p>" + datum.criteriaName + ": " + datum.studentMark + "/" + datum.maxMark + "</p>";
                 htmlString += "<p>" + datum.criteriaFeedback + "</p>";
                 htmlString += "</div>"; 

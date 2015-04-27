@@ -60,7 +60,7 @@ body{
 .control-button:hover, .control-button:focus {
     background-color: #0D47A1;
 }
-#a123{
+#canvasContainer{
     padding-left: 0;
     padding-right: 0;
     margin-left: auto;
@@ -85,6 +85,9 @@ body{
 }
 .collapsable.open {
     max-height: 150px;
+}
+#moduleInfoContainer{
+    margin-left: 1%;
 }
 .moduleInfoDiv{
     max-width: 100%;
