@@ -63,7 +63,7 @@ body{
     border-radius: 2px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
 }
-.control-button:hover, .control-button:focus {
+.control-button:hover {
     background-color: #0D47A1;
 }
 #canvasContainer{

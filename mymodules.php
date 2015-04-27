@@ -652,7 +652,8 @@ catch(PDOException $e)
             20,
             2,
             false,
-            true); // Add a border
+            true,
+            barPositionObject.classAverage); // Add a border
 
         // check the number of bars selected and populate the right div
         if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
@@ -676,7 +677,9 @@ catch(PDOException $e)
               barPositionObject.value,
               20,
               2,
-              true);
+              true,
+              false, // No border
+              barPositionObject.classAverage);
           barsSelectedtoCompare--;
           barSelectedArray.splice( barSelectedArray.indexOf( barPositionObject), 1 );
 

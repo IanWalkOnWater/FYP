@@ -196,7 +196,8 @@ console.log( classAverage);
         bottomLeft : [xposition , yposition + dataValue],
         bottomRight : [xposition + barWidth, yposition + dataValue],
         moduleCode : moduleCode,
-        value : value
+        value : value,
+        classAverage : classAverage
       });
     
     }; // End of For
