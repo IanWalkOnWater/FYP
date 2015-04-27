@@ -12,8 +12,8 @@
     <body>
 
     <div class="page-header" id="page-header"> 
-      <img src="images/logo.png" alt="LU Logo">
-      Home &nbsp; My Modules &nbsp; 
+      <img src="images/LULogo.png" alt="LU Logo">
+      <p class="title-text">My Feedback</p>
     </div>  
 
     <br/>
@@ -43,14 +43,16 @@
 
     ?>
 
-    <form name="loginForm" method="post" action="login.php">
+    <form class="login-form" name="loginForm" method="post" action="login.php">
 
-        <label for="userName">Username: </label><input name="userName" type="text" id="userName">
+        <label class="login-label" for= "userName">Username: </label><input class="login-input" name="userName" type="text" id="userName">
         <br/>
-        <label for="password">Password: </label><input name="password" type="password" id="password"> 
+        <br/>
+        <label class="login-label" for="password">Password: </label><input class="login-input" name="password" type="password" id="password"> 
+        <br/>
         <br/>
 
-        <button type="submit"> login</button>      
+        <button class="login-button" type="submit"> Login</button>      
 
     </form>        
     

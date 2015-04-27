@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="shortcut icon" href="http://learn.lboro.ac.uk/theme/image.php/lboro2/theme/1416506521/favicon" />
+        <link rel="shortcut icon" href="images/favicon.ico" />
         <title>My Modules </title>
         <link rel="stylesheet" type="text/css" href="css/main.css"/>
         <script type="text/javascript" src="js/canvas_functions.js"></script>
@@ -12,8 +12,8 @@
 <body>
 
 <div class="page-header" id="page-header"> 
-  <img src="images/logo.png" alt="LU Logo">
-  Home &nbsp; My Modules &nbsp; 
+  <img src="images/LULogo.png" alt="LU Logo">
+  <p class="title-text">My Feedback</p>
 </div>
 
 <?php
@@ -97,7 +97,8 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
 
   			);
 
-        $name = $row['Student_Name'];
+        $name = "'" . $row['Student_Name'] . "'";
+        $emailAddress = "'" .  $row[ 'Email_Address'] . "'";
         $jsonToEncode[] = $tempvar;
 		  }
 
@@ -108,7 +109,6 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
     $assessmentSQL .= "Student_Mark_Criteria ON Student_Mark_Criteria.Criteria_ID = Mark_Criteria.Criteria_ID ";
     $assessmentSQL .= " JOIN Student ON Student.Student_ID = Student_Mark_Criteria.Student_ID WHERE Student.Username = '" . $usernameInput . "'";
 
-    echo $assessmentSQL;
      echo "<br/>";
 	 
     foreach ($conn->query($assessmentSQL) as $row) 
@@ -138,7 +138,6 @@ $sql .= "JOIN Lecturer ON Module.Staff_ID = Lecturer.Staff_ID WHERE Student.User
 		//$someJson = json_encode($tempvar);
 		$moduleInfoJSON = json_encode($jsonToEncode);
     $assessmentDataJSON = json_encode($assessmentDataArray);
-    print "Welcome " . $name . "! (logout)<br/>";
     }
 catch(PDOException $e)
     {
@@ -146,30 +145,37 @@ catch(PDOException $e)
     }
 ?> 
 
-
-
-<div  class="section-title">All Modules </div>
-
-
-
-
+<div class="welcome-text"> Welcome 
+  <?php 
+    echo str_replace( "'" , "", $name)  // Replace the ' with with a blank space
+  ?>!
+</div>  
 <br/>
-<br/>
-<br/>
-<!--<button type = "button" onclick = "drawAllModules()"> Show all modules </button> -->
-<button type = "button" onclick = "resetButtonHandler()"> Up a level  </button>
-<button type = "button" onclick = "compareButtonHandler()"> Compare </button>
-<select id = "filterSelector" onchange = "filterBarChart(this)">
-  <option>All</option>
-</select>
 
-<label for = "sortSelector"> Sort By:</label><select id = "sortSelector" onchange = "sortBarChart(this)">
-  <option>Module Code</option>
-  <option>Score (High to Low)</option>
-  <option>Score (Low to High) </option>
-</select>
+<div class="control-div">
+  <button type="button" class= "control-button" onclick = "resetButtonHandler()"> <img src="images/arrow-up.png"><br/> Up a level </button>
+  <button type="button" class= "control-button" onclick= "compareButtonHandler()"> <img src="images/compare.png"><br/> Compare </button>
+ &nbsp;
 
-<canvas width = "10000" height= "300" id= "myCanvas"></canvas>
+
+  <div class="control-subdiv">
+    <label for = "filterSelector"> Filter By:</label><br/>
+    <select id = "filterSelector" onchange = "filterBarChart(this)">
+      <option>All</option>
+    </select>
+  </div>
+&nbsp;
+  <div class="control-subdiv">
+    <label for = "sortSelector"> Sort By:</label><br/>
+    <select id = "sortSelector" onchange = "sortBarChart(this)">
+      <option>Module Code</option>
+      <option>Score (High to Low)</option>
+      <option>Score (Low to High) </option>
+    </select>
+  </div> 
+</div>  
+
+<div id="a123"><canvas width = "10000" height= "300" id= "mainCanvas"></canvas></div>
 <br/>
 <div id = "moduleInfoContainer">
   <div id = "moduleInfoDiv" class = "moduleInfoDiv"></div>
@@ -180,6 +186,8 @@ catch(PDOException $e)
 <script type="text/javascript">
   var abc = <?php echo $moduleInfoJSON; ?>;
   var assessmentDataJSONArray = <?php echo $assessmentDataJSON; ?>;
+  var globalStudentName = <?php echo $name; ?>;
+  var globalEmailAddress = <?php echo $emailAddress; ?>;
 
   var moduleMarkArray = [];
   var moduleCodeArray = [];
@@ -364,7 +372,7 @@ catch(PDOException $e)
       
       drawOneBar( context, xposition, yposition, barWidth, dataValue, spaceFromBottom, lengthMultiplier);
       var textPosition =  parseInt(dataValue) + yposition + spaceFromBottom ;
-      context.fillText( "Part T", xposition, textPosition);
+      context.fillText( "Part C", xposition, textPosition);
 
       var arrayOfScores2011 = [];
       var arrayOfScores2012 = [];
@@ -446,6 +454,13 @@ catch(PDOException $e)
           //htmlString += "<div class='collapsable' data-height='400'>";
           if( moduleInfo[0].criteriaID != undefined )
           {  
+              var tableOfData = createTable( moduleInfo);
+              console.log( moduleInfo);
+              htmlString += '<form name="emailForm" method="post" action="sendmail.php">';
+              htmlString += '<input class="hidden" name="emailAddress" type="text" id="emailAddress" value="' + globalEmailAddress + '">';
+              htmlString += '<input class="hidden" name="moduleCode" type="text" id="moduleCode" value="' + moduleInfo[0].moduleCode + '">';
+              htmlString += '<input class="hidden" name="dataString" type="text" id="dataString" value="' + tableOfData + '">';
+              htmlString += '<br/> <button type="submit"> Email Me</button>      <br/></form>';
               
               var numberOf = 1;
               for( var i = 0; i< moduleInfo.length; i++)
@@ -683,13 +698,30 @@ catch(PDOException $e)
     ***************************************************************/
     function filterBarChart(filterSelectorElement)
     {
+
+      var filterSelected = filterSelectorElement.options[ filterSelectorElement.selectedIndex].text;
+      if( filterSelected == "All")
+      {
+        console.log("data array");
+        console.log(currentCanvasChart.dataArray );
+        var returnvalue =  drawBarChart ( currentCanvasChart.dataArray, 
+                            currentCanvasChart.dataLabelArray, 
+                            currentCanvasChart.barWidth, 
+                            currentCanvasChart.canvasHeight,
+                            canvas,
+                            currentCanvasChart.lengthMultiplier,
+                            false);
+
+        return;
+      }
+      preSortCanvasChart = currentCanvasChart;
       filterResetArray = currentCanvasChart;
       var allCurrentModuleArray = currentCanvasChart.dataLabelArray;
       
       // Get the filter that the user has selected
-      var filterSelected = filterSelectorElement.options[ filterSelectorElement.selectedIndex].text;
+      
       // If All is picked then just return and exit the function
-      if( filterSelected == "All") return;
+      
       var moduleObjectArray = null;
       var arrayToCompare = [];
 
@@ -800,6 +832,45 @@ catch(PDOException $e)
 
 
     }
+    /**************************************************************
+    * create table
+    ***************************************************************/
+    function createTable( objectInput)
+    {
+
+      htmlString = "";
+      htmlString += "<img src='http://co-project.lboro.ac.uk/users/coidckw/Electronic%20Marking%20System/images/logo.png' alt='LU Logo'><br/>"
+      htmlString += "<div>Dear " + globalStudentName + ", below is your requested feedback</div>";
+      htmlString += "<table style='font-family:Arial;' border='1'>";
+
+      htmlString += "<tr><td> Module Code</td><td>Assessment</td><td>Critera</td><td>Mark</td><td>Comment</td></tr>";
+      for( var counter = 0; counter< objectInput.length; counter++)
+      {
+        var data = objectInput[counter];
+        var assessmentName = data.assessmentName;
+        var moduleCode = data.moduleCode;
+        var criteriaName = data.criteriaName;
+        var feedback = data.criteriaFeedback;
+        var studentMark = data.studentMark + "/" + data.maxMark;
+
+        htmlString += "<tr>";
+        htmlString += "<td>" + moduleCode + "</td>" + "<td>" + assessmentName + "</td><td>" + criteriaName + "</td>";
+        htmlString += "<td>" + studentMark + "</td>";
+        htmlString += "<td>" + feedback + "</td>";
+
+        htmlString += "</tr>";
+      }  
+
+      htmlString += "</table><br/>";
+      htmlString += "<div>Generated from <a href='http://co-project.lboro.ac.uk/users/coidckw/Electronic%20Marking%20System/mymodules.php'>Feedback Delivery System</a></div>"
+
+      return htmlString;
+
+
+    }
+    /**************************************************************
+    * 
+    ***************************************************************/
     // Draws a bar chart with every module
     function drawAllModules()
     {
@@ -812,8 +883,9 @@ catch(PDOException $e)
                   2 // Length Multiplier
                   ); 
     }// End of drawAllModules
-
-    //Function that resets the canvas to when the page is first loaded
+    /**************************************************************
+    *Function that resets the canvas to when the page is first loaded
+    ***************************************************************/
     function resetButtonHandler()
     {
       resetCanvas(canvas);
@@ -864,9 +936,10 @@ catch(PDOException $e)
 /**********************************************************************/
 console.log( "moduleObjectArray is:");
 console.log( moduleObjectArray);
-  var canvas = document.getElementById('myCanvas');
+  var canvas = document.getElementById('mainCanvas');
 
   var currentCanvasChart = null;
+  var preSortCanvasChart = null;
   var compareMode = false;
   var barsSelectedtoCompare = 0;
   var barSelectedArray = [];

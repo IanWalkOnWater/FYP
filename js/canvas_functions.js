@@ -1,21 +1,3 @@
- // function check( inputArray, objectToCompare)
- //     {
-        
- //        var topLeft = objectToCompare.topLeft;
- //        var topRight = objectToCompare.topRight;
-
- //        var bottomLeft = objectToCompare.bottomLeft;
- //        var bottomRight = objectToCompare.bottomRight;
- //        if( checkX( inputArray[0], topLeft[0], topRight[0]) == true
- //          && checkY( inputArray[1], topLeft[1], bottomLeft[1] ) == true )
- //        {
- //          console.log( " check passed");
- //        }  
-
- //        //if( checkY( inputArray[1], topLeft[1], bottomLeft[1] ))
- //          //console.log( "ycheck passed");
-
- //     }
 
   /**************************************************************
   * Calculate the x and y co-ordinates with relation to length
@@ -25,11 +7,13 @@
     var newYPosition = -1;
 
     newYPosition = canvasHeight - (yposition * lengthMultiplier) - (spaceFromBottom - 5 );
-    console.log( "newYPosition is ")
+    console.log( "newYPosition is ");
     console.log( newYPosition);
     return Number(newYPosition)
   }
-  // Draw one bar within a canvas
+  /**************************************************************
+  * Draw one bar within a canvas
+  ***************************************************************/
   function drawOneBar( context,
                     xposition,
                     yposition,
@@ -47,14 +31,13 @@
     if( fadedColour == undefined) fadedColour = false;
     if( addBorder == undefined) addBorder = false;
 
-    // if length multiplyer is 
+    // if length multiplyer is greater than 1 then get the new y coordinate
     if( lengthMultiplier > 1)
       yposition = context.canvas.height - (dataValue * lengthMultiplier) - (spaceFromBottom - 5 );
 
     var labelPosition = xposition + (barWidth/3); // Get the labelPosition of the bar
 
     try{
-
         drawGreyBar(context, xposition, 100, spaceFromBottom, lengthMultiplier);
         context.beginPath();
         context.rect(xposition, yposition , barWidth, dataValue * lengthMultiplier); // X-pos, Y-Pos ( from top), width, height
@@ -74,10 +57,9 @@
             case ( dataValue < 70 && dataValue >= 40): context.fillStyle = "#FFE082"; break;
             case ( dataValue < 40): context.fillStyle = "#FF8A65"; break;
           }
-
-        }
+        }// End of If
         
-        context.fill();
+        context.fill(); // Fill in the bar 
 
         if( addBorder == true) // If addBorder is true then draw a border around the bar
         {  
