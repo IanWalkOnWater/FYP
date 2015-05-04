@@ -83,6 +83,7 @@ body{
     box-shadow: 5px 5px 5px #888888;
     margin: 5px 5px 5px 5px;
     transition: all 0.5s linear;
+    cursor: pointer;
 }
 .collapsable div:nth-of-type(1) {
     margin: 0;
@@ -91,6 +92,20 @@ body{
 }
 .collapsable.open {
     max-height: 150px;
+}
+.plus, .minus{
+    display: block;
+    float: right;
+    font-size: 1.5em;
+    transition: all 0.5s ease;
+    margin-right: 3px;
+
+}
+.plus.hidden, .minus.hidden{
+    display: none;
+}
+.feedback-info{
+    margin-top: 0px;
 }
 #moduleInfoContainer{
     margin-left: 1%;
@@ -129,6 +144,25 @@ body{
 }
 .login-input{
     border-radius: 2px;
+}
+.error-message{
+    color:red;
+    width: 100%;
+    text-align: center;
+    font-size: 1.5em;
+    display: block;
+}
+.error-message.hidden{
+    color:red;
+    width: 100%;
+    text-align: center;
+    display: none;
+}
+.logout-message{
+    color: #0D47A1;
+    width: 100%;
+    text-align: center;
+    font-size: 1.5em;
 }
 
 

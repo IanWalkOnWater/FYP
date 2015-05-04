@@ -7,8 +7,7 @@
     var newYPosition = -1;
 
     newYPosition = canvasHeight - (yposition * lengthMultiplier) - (spaceFromBottom - 5 );
-    console.log( "newYPosition is ");
-    console.log( newYPosition);
+
     return Number(newYPosition)
   }
   /**************************************************************
@@ -80,14 +79,12 @@
         
         // Add the data label below the bar
         context.fillStyle = "black";
-        context.font = 'italic 10pt Calibri';
+        context.font = '10pt Calibri';
         context.fillText( dataValue, labelPosition, yposition - (spaceFromBottom/2));
         context.closePath();
-console.log( "classAverage is");
-console.log( classAverage);
+
         if( classAverage > -1)
         {  
-         
           //var tempa = context.canvas.height - (dataValue * lengthMultiplier) - (spaceFromBottom - 5 );
           ypos = yposition + (dataValue - classAverage );
           addClassAverage( context, xposition, ypos, barWidth);
@@ -146,9 +143,6 @@ console.log( classAverage);
     var objectArray = [];
     var classAverage = -1;
     var addBorder = false;
-
-    console.log( "classAverageArray");
-    console.log( classAverageArray);
     
     canvas.height = canvasHeight;
     var context = canvas.getContext('2d');
@@ -178,7 +172,7 @@ console.log( classAverage);
     
       if( dataArray.length == dataLabelArray.length)
       {
-        context.font = 'italic 15pt Calibri';
+        context.font = '15pt Calibri';
           
         //var textPosition = parseInt(yposition) + parseInt(dataValue) + 20;
         //var textPosition =  parseInt(dataArray[i]) + yposition + 20 ;
@@ -239,6 +233,8 @@ console.log( classAverage);
 
   // Find the position of the mouse in the canvas
   // param: canvas object, event
+  // Code taken from http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
+  // HTML 5 Canvas Tutorials [n.d]. Accessed at 02.03.2015
   function getMousePos(canvas, evt)
   {
     var rect = canvas.getBoundingClientRect();
