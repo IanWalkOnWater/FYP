@@ -1,3 +1,4 @@
+var canvasObjectToUse = null;    
     /**************************************************************
     *Toggles collapsible content
     ***************************************************************/    
@@ -456,7 +457,7 @@
             2,
             false,
             true,
-            barPositionObject.classAverage); // Add a border
+            barPositionObject.classAverage); 
 
         // check the number of bars selected and populate the right div
         if( barsSelectedtoCompare == 0) populateInfoDiv(barPositionObject.moduleCode );
@@ -526,25 +527,36 @@
     ***************************************************************/
     function filterBarChart(filterSelectorElement)
     {
-
+      
+      if(filterApplied == false )
+      {
+        filterResetOjbect = currentCanvasChart;
+        canvasObjectToUse = currentCanvasChart;
+      } 
+      
       var filterSelected = filterSelectorElement.options[ filterSelectorElement.selectedIndex].text;
       if( filterSelected == "All")
       {
         
-        var returnvalue =  drawBarChart ( currentCanvasChart.dataArray, 
-                            currentCanvasChart.dataLabelArray, 
-                            currentCanvasChart.barWidth, 
-                            currentCanvasChart.canvasHeight,
+        var returnvalue =  drawBarChart ( filterResetOjbect.dataArray, 
+                            filterResetOjbect.dataLabelArray, 
+                            filterResetOjbect.barWidth, 
+                            filterResetOjbect.canvasHeight,
                             canvas,
-                            currentCanvasChart.lengthMultiplier,
-                            false);
+                            filterResetOjbect.lengthMultiplier,
+                            false,// fadedColour,
+                            filterResetOjbect.classAverageArray);// classAverage
 
+        currentCanvasChart = filterResetOjbect;
+        filterApplied = false 
+        assignClickEvent( canvas, returnvalue );
+        sortBarChart( document.getElementById('sortSelector') );
         return;
       }
-      preSortCanvasChart = currentCanvasChart;
-      filterResetArray = currentCanvasChart;
-      var allCurrentModuleArray = currentCanvasChart.dataLabelArray;
+
       
+      //var allCurrentModuleArray = currentCanvasChart.dataLabelArray;
+      var allCurrentModuleArray = canvasObjectToUse.dataLabelArray;
       // Get the filter that the user has selected
       
       // If All is picked then just return and exit the function
@@ -554,6 +566,7 @@
 
       var dataLabelArray = [];
       var dataArray = [];
+      var dataAverageArray = [];
 
      
 
@@ -575,22 +588,37 @@
         if( arrayToCompare.indexOf( allCurrentModuleArray[i] ) > -1)
         {  
           dataLabelArray.push( allCurrentModuleArray[i]);
-          dataArray.push( currentCanvasChart.dataArray[i]);
+          dataArray.push( canvasObjectToUse.dataArray[i]);
+          dataAverageArray.push( canvasObjectToUse.classAverageArray[i] )
         }  
 
       }  
       
+      var params = {        
+                    dataArray: dataArray, 
+                    dataLabelArray: dataLabelArray, 
+                    barWidth: canvasObjectToUse.barWidth, 
+                    canvasHeight:  canvasObjectToUse.canvasHeight,
+                    canvas: canvas,
+                    lengthMultiplier: canvasObjectToUse.lengthMultiplier,
+                    classAverageArray: dataAverageArray
+                    };
 
      var returnvalue =  drawBarChart ( dataArray, 
                             dataLabelArray, 
-                            currentCanvasChart.barWidth, 
-                            currentCanvasChart.canvasHeight,
+                            canvasObjectToUse.barWidth, 
+                            canvasObjectToUse.canvasHeight,
                             canvas,
-                            currentCanvasChart.lengthMultiplier,
-                            false);
+                            canvasObjectToUse.lengthMultiplier,
+                            false,// fadedColour,
+                            dataAverageArray);// classAverage
      console.log( returnvalue);
 
-     assignClickEvent( canvas, returnvalue )
+     assignClickEvent( canvas, returnvalue );
+     filterApplied = true;
+     currentCanvasChart = params;
+
+     sortBarChart( document.getElementById('sortSelector') );
 
     }
     /**************************************************************
@@ -636,7 +664,8 @@
                             currentCanvasChart.canvasHeight,
                             canvas,
                             currentCanvasChart.lengthMultiplier,
-                            false);
+                            false,// fadedColour,
+                            currentCanvasChart.classAverageArray);// classAverage
       assignClickEvent( canvas, returnvalue );
     }
 

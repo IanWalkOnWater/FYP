@@ -242,6 +242,7 @@ console.log( moduleObjectArray);
   var barSelectedArray = [];
 
   var filterResetOjbect = null; // This array contains the bar chart before a filter was applied
+  var filterApplied = false;
 
   var barWidth = 50;
   var canvasHeight = 300;
